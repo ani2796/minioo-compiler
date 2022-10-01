@@ -2,9 +2,7 @@
 (* The type of tokens. *)
 
 type token = 
-  | OTHER of (string)
-  | NEWLINE
-  | FOO
+  | INPUT of (char)
 
 (* This exception is raised by the monolithic API functions. *)
 
@@ -12,4 +10,4 @@ exception Error
 
 (* The monolithic API. *)
 
-val prog: (Lexing.lexbuf -> token) -> Lexing.lexbuf -> (unit)
+val program: (Lexing.lexbuf -> token) -> Lexing.lexbuf -> (unit)
