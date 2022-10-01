@@ -2,7 +2,10 @@
 (* The type of tokens. *)
 
 type token = 
-  | INPUT of (char)
+  | INTEGER of (int)
+  | INPUT of (string)
+  | IDENTIFIER of (string)
+  | EOL
 
 (* This exception is raised by the monolithic API functions. *)
 

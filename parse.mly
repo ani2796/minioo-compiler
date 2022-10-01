@@ -3,11 +3,15 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token <char> INPUT
+%token EOL
+%token <string> INPUT IDENTIFIER
+%token <int> INTEGER
 %type <unit> program
 %start program
 
 %%
 
 program :
-    INPUT { () }
+    INPUT EOL       { print_string ("Unidentified: " ^ $1); () }
+|   IDENTIFIER EOL  { print_string ("Identifier: " ^ $1); () }
+|   INTEGER EOL     { print_string ("Integer: " ^ string_of_int($1)); () }
