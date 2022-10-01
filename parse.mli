@@ -3,7 +3,6 @@
 
 type token = 
   | INTEGER of (int)
-  | INPUT of (string)
   | IDENTIFIER of (string)
   | EOL
 

@@ -4,14 +4,17 @@
 
 (* Terminal and non-terminal definitions *)
 %token EOL
-%token <string> INPUT IDENTIFIER
+%token <string> IDENTIFIER
 %token <int> INTEGER
-%type <unit> program
+%type <unit> program ids_or_ints
 %start program
 
 %%
 
-program :
-    INPUT EOL       { print_string ("Unidentified: " ^ $1); () }
-|   IDENTIFIER EOL  { print_string ("Identifier: " ^ $1); () }
-|   INTEGER EOL     { print_string ("Integer: " ^ string_of_int($1)); () }
+program : 
+|   ids_or_ints EOL             { () }
+
+ids_or_ints :
+|   IDENTIFIER                  { print_string ("\nIdentifier: " ^ $1); () }
+|   INTEGER                     { print_string ("\nInteger: " ^ string_of_int($1)); () }
+|   ids_or_ints ids_or_ints     { () }
