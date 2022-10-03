@@ -3,26 +3,31 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token EOL MINUS SEMICOLON
+%token EOL MINUS SEMICOLON VAR ASSIGN
 %token <string> IDENTIFIER
 %token <int> INTEGER
-%type <int> expressions
+%type <unit> commands command
 %type <int> expression
 %type <unit> program
 %start program
+%left MINUS
 
 %%
 
 program : 
-|   expressions EOL                 { () }
+|   commands EOL                        { () }
 
-expressions :
-|   expression SEMICOLON expressions{ print_string ("\nExpressions ending in: " ^ string_of_int($3)); ($3) }
-|   expression                      { print_string ("\nExpression: " ^ string_of_int($1)); ($1) }
+commands :
+|   command SEMICOLON commands          { () }
+|   command                             { () }
+|   command SEMICOLON                   { () }
+
+command :
+|   VAR IDENTIFIER                      { print_string ("\nCommand: var " ^ ($2)); () }
+|   VAR IDENTIFIER ASSIGN expression    { print_string ("\nCommand: var " ^ ($2) ^ " = " ^ string_of_int($4)); () }
+|   IDENTIFIER ASSIGN expression        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); () }
 
 expression :
-|   IDENTIFIER                      { print_string ("\nIdentifier: " ^ ($1)); (1) }
-|   INTEGER                         { print_string ("\nInteger: " ^ string_of_int($1)); ($1) }
-|   expression MINUS expression     { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); ($3) }
-
-
+|   IDENTIFIER                          { print_string ("\nIdentifier: " ^ ($1)); (1) }
+|   INTEGER                             { print_string ("\nInteger: " ^ string_of_int($1)); ($1) }
+|   expression MINUS expression         { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); ($3) }
