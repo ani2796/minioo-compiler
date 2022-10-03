@@ -2,6 +2,8 @@
 (* The type of tokens. *)
 
 type token = 
+  | SEMICOLON
+  | MINUS
   | INTEGER of (int)
   | IDENTIFIER of (string)
   | EOL

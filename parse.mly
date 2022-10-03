@@ -3,18 +3,26 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token EOL
+%token EOL MINUS SEMICOLON
 %token <string> IDENTIFIER
 %token <int> INTEGER
-%type <unit> program ids_or_ints
+%type <int> expressions
+%type <int> expression
+%type <unit> program
 %start program
 
 %%
 
 program : 
-|   ids_or_ints EOL             { () }
+|   expressions EOL                 { () }
 
-ids_or_ints :
-|   IDENTIFIER                  { print_string ("\nIdentifier: " ^ $1); () }
-|   INTEGER                     { print_string ("\nInteger: " ^ string_of_int($1)); () }
-|   ids_or_ints ids_or_ints     { () }
+expressions :
+|   expression SEMICOLON expressions{ print_string ("\nExpressions ending in: " ^ string_of_int($3)); ($3) }
+|   expression                      { print_string ("\nExpression: " ^ string_of_int($1)); ($1) }
+
+expression :
+|   IDENTIFIER                      { print_string ("\nIdentifier: " ^ ($1)); (1) }
+|   INTEGER                         { print_string ("\nInteger: " ^ string_of_int($1)); ($1) }
+|   expression MINUS expression     { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); ($3) }
+
+

@@ -16,6 +16,8 @@ let space = ('\t' | ' ')
 rule token = parse
 |   space+                      { token lexbuf }
 |   '\n'                        { EOL }
+|   ';'                         { SEMICOLON }
+|   '-'                         { MINUS }
 |   char (char|digit)* as id    { IDENTIFIER id }
 |   digit+ as integer           { INTEGER (int_of_string(integer)) }
 |   eof                         { raise Eof }
