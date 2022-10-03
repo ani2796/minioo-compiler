@@ -4,10 +4,17 @@
 type token = 
   | VAR
   | SEMICOLON
+  | RIGHT_PAREN
+  | RIGHT_CURLY
+  | PROC
+  | NULL
   | MINUS
+  | LEFT_PAREN
+  | LEFT_CURLY
   | INTEGER of (int)
   | IDENTIFIER of (string)
   | EOL
+  | COLON
   | ASSIGN
 
 (* This exception is raised by the monolithic API functions. *)
