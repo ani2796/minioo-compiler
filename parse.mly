@@ -33,6 +33,7 @@ command :
 |   VAR IDENTIFIER                      { print_string ("\nCommand: var " ^ ($2)); () }
 |   VAR IDENTIFIER ASSIGN expression    { print_string ("\nCommand: var " ^ ($2) ^ " = " ^ string_of_int($4)); () }
 |   IDENTIFIER ASSIGN expression        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); () }
+|   block                               { () }
 
 expression :
 |   NULL                                { print_string ("\nnull"); (0) }
@@ -43,4 +44,4 @@ expression :
 |   expression MINUS expression         { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); ($3) }
 
 block :
-|   LEFT_CURLY commands RIGHT_CURLY     { () }
+|   LEFT_CURLY commands RIGHT_CURLY     { print_string ("\nBlock"); () }
