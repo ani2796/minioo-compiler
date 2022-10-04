@@ -2,7 +2,9 @@
 (* The type of tokens. *)
 
 type token = 
+  | WHILE
   | VAR
+  | TRUE
   | SEMICOLON
   | RIGHT_PAREN
   | RIGHT_CURLY
@@ -12,8 +14,13 @@ type token =
   | LEFT_PAREN
   | LEFT_CURLY
   | INTEGER of (int)
+  | IF
   | IDENTIFIER of (string)
+  | GREATER
+  | FALSE
+  | EQUALS
   | EOL
+  | ELSE
   | COLON
   | ASSIGN
 

@@ -18,8 +18,15 @@ rule token = parse
 |   "var"                       { VAR }
 |   "null"                      { NULL }
 |   "proc"                      { PROC }
+|   "true"                      { TRUE }
+|   "false"                     { FALSE }
+|   "if"                        { IF }
+|   "else"                      { ELSE }
+|   "while"                     { WHILE }
 |   '\n'                        { EOL }
 |   '='                         { ASSIGN }
+|   "=="                        { EQUALS }
+|   '>'                         { GREATER }
 |   ';'+                        { SEMICOLON }
 |   ':'                         { COLON }
 |   '-'                         { MINUS }

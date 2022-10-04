@@ -3,15 +3,14 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token EOL MINUS SEMICOLON COLON ASSIGN
+%token EOL MINUS SEMICOLON COLON ASSIGN GREATER EQUALS
 %token LEFT_PAREN RIGHT_PAREN LEFT_CURLY RIGHT_CURLY
-%token VAR NULL PROC
+%token VAR NULL PROC TRUE FALSE IF ELSE WHILE
 %token <string> IDENTIFIER
 %token <int> INTEGER
 
-%type <unit> commands command block
-%type <int> expression
-%type <unit> program
+%type <unit> program commands command block if_else loop
+%type <int> expression boolean
 
 (* Start symbol *)
 %start program
@@ -20,6 +19,7 @@
 %left MINUS
 
 %%
+(* Context-free Grammar *)
 
 program : 
 |   commands EOL                        { () }
@@ -34,6 +34,8 @@ command :
 |   VAR IDENTIFIER ASSIGN expression    { print_string ("\nCommand: var " ^ ($2) ^ " = " ^ string_of_int($4)); () }
 |   IDENTIFIER ASSIGN expression        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); () }
 |   block                               { () }
+|   if_else                             { () }
+|   loop                                { () }
 
 expression :
 |   NULL                                { print_string ("\nnull"); (0) }
@@ -43,5 +45,18 @@ expression :
 |   LEFT_PAREN expression RIGHT_PAREN   { print_string ("\nExpression: " ^ string_of_int($2)); ($2) }
 |   expression MINUS expression         { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); ($3) }
 
+boolean :
+|   TRUE                                { print_string ("\nBoolean expr: true"); (1) }
+|   FALSE                               { print_string ("\nBoolean expr: false"); (0) }
+|   expression EQUALS expression        { print_string ("\nBoolean expr: " ^ string_of_int($1) ^ " == " ^ string_of_int($3)); ($3) }
+|   expression GREATER expression       { print_string ("\nBoolean expr: " ^ string_of_int($1) ^ " > " ^ string_of_int($3)); ($3) }
+|   LEFT_PAREN boolean RIGHT_PAREN      { print_string ("\nBoolean expr: " ^ string_of_int($2)); ($2) }
+
 block :
 |   LEFT_CURLY commands RIGHT_CURLY     { print_string ("\nBlock"); () }
+
+if_else :
+|   IF boolean block ELSE block         { print_string ("\nIf else command"); () }
+
+loop :
+|   WHILE boolean block                 { print_string ("\nWhile command"); () }
