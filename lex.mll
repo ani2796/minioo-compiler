@@ -34,6 +34,7 @@ rule token = parse
 |   '}'                         { RIGHT_CURLY }
 |   '('                         { LEFT_PAREN }
 |   ')'                         { RIGHT_PAREN }
-|   char (char|digit)* as id    { IDENTIFIER id }
+|   upper (char|digit)* as field    { FIELD field} (* Fields can only start with upper-case *)
+|   lower (char|digit)* as id    { IDENTIFIER id } (* Identifiers can only start with lower-case *)
 |   digit+ as integer           { INTEGER (int_of_string(integer)) }
 |   eof                         { raise Eof }

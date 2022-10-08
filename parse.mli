@@ -17,6 +17,7 @@ type token =
   | IF
   | IDENTIFIER of (string)
   | GREATER
+  | FIELD of (string)
   | FALSE
   | EQUALS
   | EOL
