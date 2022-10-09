@@ -30,6 +30,7 @@ rule token = parse
 |   '>'                         { GREATER }
 |   ';'+                        { SEMICOLON }
 |   ':'                         { COLON }
+|   '.'                         { DOT }
 |   '-'                         { MINUS }
 |   '{'                         { LEFT_CURLY }
 |   '}'                         { RIGHT_CURLY }

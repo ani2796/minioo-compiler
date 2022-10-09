@@ -3,7 +3,7 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token EOL MINUS SEMICOLON COLON ASSIGN GREATER EQUALS
+%token EOL MINUS SEMICOLON COLON ASSIGN GREATER EQUALS DOT
 %token LEFT_PAREN RIGHT_PAREN LEFT_CURLY RIGHT_CURLY
 %token VAR NULL PROC TRUE FALSE IF ELSE WHILE MALLOC
 %token <string> IDENTIFIER FIELD
@@ -34,6 +34,7 @@ command :
 |   VAR IDENTIFIER                      { print_string ("\nCommand: var " ^ ($2)); () }
 |   IDENTIFIER ASSIGN expression        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); () }
 |   expression LEFT_PAREN expression RIGHT_PAREN    { print_string ("\nCommand proc call: " ^ string_of_int($1) ^ "(" ^ string_of_int($3) ^ (")")); () }
+|   expression DOT expression ASSIGN expression     { print_string ("\nCommand field assignment: " ^ string_of_int($1) ^ "." ^ string_of_int($3) ^ "=" ^ string_of_int($5)); () }
 |   MALLOC LEFT_PAREN IDENTIFIER RIGHT_PAREN        { print_string ("\nCommand malloc: " ^ ($3)); () }
 |   block                               { () }
 |   if_else                             { () }
@@ -44,6 +45,7 @@ expression :
 |   PROC IDENTIFIER COLON block         { print_string ("\nProcedure: " ^ ($2)); (-1) }
 |   IDENTIFIER                          { print_string ("\nIdentifier: " ^ ($1)); (1) }
 |   FIELD                               { print_string ("\nField: " ^ ($1)); (2) }
+|   expression DOT expression           { print_string ("\nLocation expression: " ^ string_of_int($1) ^ "." ^ string_of_int($3)); ($3) }
 |   INTEGER                             { print_string ("\nInteger: " ^ string_of_int($1)); ($1) }
 |   LEFT_PAREN expression RIGHT_PAREN   { print_string ("\nExpression: " ^ string_of_int($2)); ($2) }
 |   expression MINUS expression         { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); ($3) }

@@ -23,6 +23,7 @@ type token =
   | EQUALS
   | EOL
   | ELSE
+  | DOT
   | COLON
   | ASSIGN
 
