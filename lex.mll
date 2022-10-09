@@ -23,6 +23,7 @@ rule token = parse
 |   "if"                        { IF }
 |   "else"                      { ELSE }
 |   "while"                     { WHILE }
+|   "malloc"                    { MALLOC }
 |   '\n'                        { EOL }
 |   '='                         { ASSIGN }
 |   "=="                        { EQUALS }
@@ -35,6 +36,6 @@ rule token = parse
 |   '('                         { LEFT_PAREN }
 |   ')'                         { RIGHT_PAREN }
 |   upper (char|digit)* as field    { FIELD field} (* Fields can only start with upper-case *)
-|   lower (char|digit)* as id    { IDENTIFIER id } (* Identifiers can only start with lower-case *)
+|   lower (char|digit)* as id   { IDENTIFIER id } (* Identifiers can only start with lower-case *)
 |   digit+ as integer           { INTEGER (int_of_string(integer)) }
 |   eof                         { raise Eof }

@@ -11,6 +11,7 @@ type token =
   | PROC
   | NULL
   | MINUS
+  | MALLOC
   | LEFT_PAREN
   | LEFT_CURLY
   | INTEGER of (int)
