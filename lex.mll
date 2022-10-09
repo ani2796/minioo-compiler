@@ -24,6 +24,8 @@ rule token = parse
 |   "else"                      { ELSE }
 |   "while"                     { WHILE }
 |   "malloc"                    { MALLOC }
+|   "skip"                      { SKIP }
+|   "atom"                      { ATOM }
 |   '\n'                        { EOL }
 |   '='                         { ASSIGN }
 |   "=="                        { EQUALS }
@@ -31,6 +33,7 @@ rule token = parse
 |   ';'+                        { SEMICOLON }
 |   ':'                         { COLON }
 |   '.'                         { DOT }
+|   "|||"                       { PARALLEL }
 |   '-'                         { MINUS }
 |   '{'                         { LEFT_CURLY }
 |   '}'                         { RIGHT_CURLY }

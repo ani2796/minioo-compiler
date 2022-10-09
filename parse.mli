@@ -5,10 +5,12 @@ type token =
   | WHILE
   | VAR
   | TRUE
+  | SKIP
   | SEMICOLON
   | RIGHT_PAREN
   | RIGHT_CURLY
   | PROC
+  | PARALLEL
   | NULL
   | MINUS
   | MALLOC
@@ -25,6 +27,7 @@ type token =
   | ELSE
   | DOT
   | COLON
+  | ATOM
   | ASSIGN
 
 (* This exception is raised by the monolithic API functions. *)

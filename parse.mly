@@ -3,9 +3,9 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token EOL MINUS SEMICOLON COLON ASSIGN GREATER EQUALS DOT
+%token EOL MINUS SEMICOLON COLON ASSIGN GREATER EQUALS DOT PARALLEL
 %token LEFT_PAREN RIGHT_PAREN LEFT_CURLY RIGHT_CURLY
-%token VAR NULL PROC TRUE FALSE IF ELSE WHILE MALLOC
+%token VAR NULL PROC TRUE FALSE IF ELSE WHILE MALLOC SKIP ATOM
 %token <string> IDENTIFIER FIELD
 %token <int> INTEGER
 
@@ -31,14 +31,17 @@ commands :
 
 command :
 (* Declaration and assignment must be done separately *)
-|   VAR IDENTIFIER                      { print_string ("\nCommand: var " ^ ($2)); () }
-|   IDENTIFIER ASSIGN expression        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); () }
-|   expression LEFT_PAREN expression RIGHT_PAREN    { print_string ("\nCommand proc call: " ^ string_of_int($1) ^ "(" ^ string_of_int($3) ^ (")")); () }
-|   expression DOT expression ASSIGN expression     { print_string ("\nCommand field assignment: " ^ string_of_int($1) ^ "." ^ string_of_int($3) ^ "=" ^ string_of_int($5)); () }
-|   MALLOC LEFT_PAREN IDENTIFIER RIGHT_PAREN        { print_string ("\nCommand malloc: " ^ ($3)); () }
-|   block                               { () }
-|   if_else                             { () }
-|   loop                                { () }
+|   VAR IDENTIFIER                                      { print_string ("\nCommand: var " ^ ($2)); () }
+|   IDENTIFIER ASSIGN expression                        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); () }
+|   expression LEFT_PAREN expression RIGHT_PAREN        { print_string ("\nCommand proc call: " ^ string_of_int($1) ^ "(" ^ string_of_int($3) ^ (")")); () }
+|   expression DOT expression ASSIGN expression         { print_string ("\nCommand field assignment: " ^ string_of_int($1) ^ "." ^ string_of_int($3) ^ "=" ^ string_of_int($5)); () }
+|   MALLOC LEFT_PAREN IDENTIFIER RIGHT_PAREN            { print_string ("\nCommand malloc: " ^ ($3)); () }
+|   SKIP                                                { print_string ("\nCommand skip"); () }
+|   block                                               { () }
+|   LEFT_CURLY commands PARALLEL commands RIGHT_CURLY   { print_string ("\nCommands parallel"); () }
+|   ATOM LEFT_PAREN commands RIGHT_PAREN                { print_string ("\nCommands atomic"); () }
+|   if_else                                             { () }
+|   loop                                                { () }
 
 expression :
 |   NULL                                { print_string ("\nnull"); (0) }
