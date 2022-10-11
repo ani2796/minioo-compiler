@@ -1,5 +1,5 @@
 %{
-    (* Preamble *)    
+    (* Preamble *)
 %}
 
 (* Terminal and non-terminal definitions *)
@@ -17,6 +17,7 @@
 
 (* Operator precendence and associativity *)
 %left MINUS
+%left DOT
 
 %%
 (* Context-free Grammar *)
