@@ -1,13 +1,16 @@
 LEXER=lex
 PARSER=parse
 EXEC=minioo
+AST=ast
 
-compile:	${LEXER}.mll ${PARSER}.mly ${EXEC}.ml
+compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
 	ocamllex ${LEXER}.mll
 	@echo "Generated ${LEXER}.ml"
 	menhir ${PARSER}.mly
 	@echo "Generated ${PARSER}.ml, ${PARSER}.mli\n"
 
+	ocamlc -c ${AST}.ml
+	@echo "Generated ${AST}.cmo\n"
 	ocamlc -c ${PARSER}.mli	
 	@echo "Generated ${PARSER}.cmi\n"
 
@@ -17,15 +20,17 @@ compile:	${LEXER}.mll ${PARSER}.mly ${EXEC}.ml
 	@echo "Generated ${PARSER}.cmo\n"
 	ocamlc -c ${EXEC}.ml
 	@echo "Generated ${EXEC}.cmo\n"
-	ocamlc -o minioo ${LEXER}.cmo ${PARSER}.cmo ${EXEC}.cmo
+	ocamlc -o minioo ${LEXER}.cmo ${PARSER}.cmo ${AST}.cmo ${EXEC}.cmo
 	@echo "Generated final executable ./${EXEC}"
 
-trace:	${LEXER}.mll ${PARSER}.mly ${EXEC}.ml
+trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
 	ocamllex ${LEXER}.mll
 	@echo "Generated ${LEXER}.ml"
 	menhir --explain ${PARSER}.mly
 	@echo "Generated ${PARSER}.ml, ${PARSER}.mli\n"
 
+	ocamlc -c ${AST}.ml
+	@echo "Generated ${AST}.cmo\n"
 	ocamlc -c ${PARSER}.mli	
 	@echo "Generated ${PARSER}.cmi\n"
 
@@ -35,7 +40,7 @@ trace:	${LEXER}.mll ${PARSER}.mly ${EXEC}.ml
 	@echo "Generated ${PARSER}.cmo\n"
 	ocamlc -c ${EXEC}.ml
 	@echo "Generated ${EXEC}.cmo\n"
-	ocamlc -o minioo ${LEXER}.cmo ${PARSER}.cmo ${EXEC}.cmo
+	ocamlc -o minioo ${LEXER}.cmo ${PARSER}.cmo ${AST}.cmo ${EXEC}.cmo
 	@echo "Generated final executable ./${EXEC}"
 
 clean:

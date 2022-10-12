@@ -1,6 +1,7 @@
 {
     (* Preamble *)
     open Parse;;
+    open Ast;;
     exception Eof;;
 }
 
