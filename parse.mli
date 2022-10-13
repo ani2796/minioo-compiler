@@ -36,4 +36,4 @@ exception Error
 
 (* The monolithic API. *)
 
-val program: (Lexing.lexbuf -> token) -> Lexing.lexbuf -> (Ast.cmd)
+val program: (Lexing.lexbuf -> token) -> Lexing.lexbuf -> (unit)

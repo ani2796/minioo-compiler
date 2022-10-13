@@ -1,5 +1,6 @@
 %{
     (* Preamble *)
+    open Type;;
     open Ast;;
 %}
 
@@ -10,12 +11,14 @@
 %token <string> IDENTIFIER FIELD
 %token <int> INTEGER
 
-%type <int> command block if_else loop
+%type <unit> program 
+%type <int> if_else loop 
 %type <int> expression boolean
-%type <Ast.cmd> commands
+%type <Ast.cmd list> commands block
+%type <Ast.cmd> command
 
 (* Start symbol *)
-%start <Ast.cmd> program
+%start program
 
 (* Operator precendence and associativity *)
 %left MINUS
@@ -25,26 +28,28 @@
 (* Context-free Grammar *)
 
 program : 
-|   commands EOL                                        { ($1) }
+|   commands EOL                                        { () }
 
 commands :              
-|   c1 = command SEMICOLON c2s = commands               { Cmds (c1, c2s) }
-|   c = command                                         { Cmd (c) }
-|   c = command SEMICOLON                               { Cmd (c) }
+|   c1 = command SEMICOLON c2s = commands               { 
+                                                            (c1::c2s) 
+                                                        }
+|   c = command                                         { [c] }
+|   c = command SEMICOLON                               { [c] }
 
 command :
 (* Declaration and assignment must be done separately *)
-|   VAR IDENTIFIER                                      { print_string ("\nCommand: var " ^ ($2)); (2) }
-|   IDENTIFIER ASSIGN expression                        { print_string ("\nCommand: " ^ ($1) ^ " = " ^ string_of_int($3)); (2) }
-|   expression LEFT_PAREN expression RIGHT_PAREN        { print_string ("\nCommand proc call: " ^ string_of_int($1) ^ "(" ^ string_of_int($3) ^ (")")); (2) }
-|   expression DOT expression ASSIGN expression         { print_string ("\nCommand field assignment: " ^ string_of_int($1) ^ "." ^ string_of_int($3) ^ "=" ^ string_of_int($5)); (2) }
-|   MALLOC LEFT_PAREN IDENTIFIER RIGHT_PAREN            { print_string ("\nCommand malloc: " ^ ($3)); (2) }
-|   SKIP                                                { print_string ("\nCommand skip"); (2) }
-|   block                                               { (2) }
-|   LEFT_CURLY commands PARALLEL commands RIGHT_CURLY   { print_string ("\nCommands parallel"); (2) }
-|   ATOM LEFT_PAREN commands RIGHT_PAREN                { print_string ("\nCommands atomic"); (2) }
-|   if_else                                             { (2) }
-|   loop                                                { (2) }
+|   VAR id = IDENTIFIER                                 { Decl {id;} }
+|   id = IDENTIFIER ASSIGN expr = expression            { Asmt {id=id; value=string_of_int(expr);} }
+|   expression LEFT_PAREN expression RIGHT_PAREN        { FuncCall ("\nCommand proc call: " ^ string_of_int($1) ^ "(" ^ string_of_int($3) ^ (")")) }
+|   e1 = expression DOT e2 = expression ASSIGN e3 = expression  { FieldAsmt {field=(string_of_int(e1)^"."^string_of_int(e2)); value=string_of_int(e3)} }
+|   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN       { Malloc {id;} }
+|   SKIP                                                { Skip }
+|   b = block                                           { Block b }
+|   LEFT_CURLY cs1 = commands PARALLEL cs2 = commands RIGHT_CURLY   { Parallel (cs1, cs2) }
+|   ATOM LEFT_PAREN cs = commands RIGHT_PAREN           { Atom (cs) }
+|   if_else                                             { FuncCall ("") }
+|   loop                                                { FuncCall ("") }
 
 expression :
 |   NULL                                                { print_string ("\nnull"); (0) }
@@ -64,7 +69,7 @@ boolean :
 |   LEFT_PAREN boolean RIGHT_PAREN                      { print_string ("\nBoolean expr: " ^ string_of_int($2)); (1) }
 
 block :
-|   LEFT_CURLY commands RIGHT_CURLY                     { print_string ("\nBlock"); (2) }
+|   LEFT_CURLY cs = commands RIGHT_CURLY                     { cs }
 
 (* To avoid parsing ambiguity of dangling statements, each block is delimited by blocks (curly braces) *)
 
