@@ -13,9 +13,10 @@
 
 %type <unit> program 
 %type <int> if_else loop 
-%type <int> expression boolean
+%type <bln> boolean
 %type <Ast.cmd list> commands block
 %type <Ast.cmd> command
+%type <Ast.expr> expression
 
 (* Start symbol *)
 %start program
@@ -40,33 +41,33 @@ commands :
 command :
 (* Declaration and assignment must be done separately *)
 |   VAR id = IDENTIFIER                                 { Decl {id;} }
-|   id = IDENTIFIER ASSIGN expr = expression            { Asmt {id=id; value=string_of_int(expr);} }
-|   expression LEFT_PAREN expression RIGHT_PAREN        { FuncCall ("\nCommand proc call: " ^ string_of_int($1) ^ "(" ^ string_of_int($3) ^ (")")) }
-|   e1 = expression DOT e2 = expression ASSIGN e3 = expression  { FieldAsmt {field=(string_of_int(e1)^"."^string_of_int(e2)); value=string_of_int(e3)} }
+|   id = IDENTIFIER ASSIGN expr = expression            { Asmt {id=id; value=Ast.str_of_expr(expr);} }
+|   expression LEFT_PAREN expression RIGHT_PAREN        { ProcCall ("\nCommand proc call: ()") }
+|   e1 = expression DOT e2 = expression ASSIGN e3 = expression  { FieldAsmt {field=(Ast.str_of_expr(e1)^"."^Ast.str_of_expr(e2)); value=Ast.str_of_expr(e3)} }
 |   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN       { Malloc {id;} }
 |   SKIP                                                { Skip }
 |   b = block                                           { Block b }
 |   LEFT_CURLY cs1 = commands PARALLEL cs2 = commands RIGHT_CURLY   { Parallel (cs1, cs2) }
 |   ATOM LEFT_PAREN cs = commands RIGHT_PAREN           { Atom (cs) }
-|   if_else                                             { FuncCall ("") }
-|   loop                                                { FuncCall ("") }
+|   if_else                                             { ProcCall ("") }
+|   loop                                                { ProcCall ("") }
 
 expression :
-|   NULL                                                { print_string ("\nnull"); (0) }
-|   PROC IDENTIFIER COLON block                         { print_string ("\nProcedure: " ^ ($2)); (0) }
-|   IDENTIFIER                                          { print_string ("\nIdentifier: " ^ ($1)); (0) }
-|   FIELD                                               { print_string ("\nField: " ^ ($1)); (0) }
-|   expression DOT expression                           { print_string ("\nLocation expression: " ^ string_of_int($1) ^ "." ^ string_of_int($3)); (0) }
-|   INTEGER                                             { print_string ("\nInteger: " ^ string_of_int($1)); (0) }
-|   LEFT_PAREN expression RIGHT_PAREN                   { print_string ("\nExpression: " ^ string_of_int($2)); (0) }
-|   expression MINUS expression                         { print_string ("\nExpression: " ^ string_of_int($1) ^ " - " ^ string_of_int($3)); (0) }
+|   NULL                                                { Null }
+|   PROC arg = IDENTIFIER COLON b = block               { Proc ({arg}, b) }
+|   id = IDENTIFIER                                     { Id {id; value="";} }
+|   f = FIELD                                           { Field {id=f;} }
+|   e1 = expression DOT e2 = expression                 { LocExpr ({obj=str_of_expr(e1); field=str_of_expr(e2);}, e1, e2) }
+|   i = INTEGER                                         { Int i }
+|   LEFT_PAREN e = expression RIGHT_PAREN               { e }
+|   e1 = expression MINUS e2 = expression               { MinusExpr ({arg1=str_of_expr(e1); arg2=str_of_expr(e2);}, e1, e2) }
 
 boolean :
-|   TRUE                                                { print_string ("\nBoolean expr: true"); (1) }
-|   FALSE                                               { print_string ("\nBoolean expr: false"); (1) }
-|   expression EQUALS expression                        { print_string ("\nBoolean expr: " ^ string_of_int($1) ^ " == " ^ string_of_int($3)); (1) }
-|   expression GREATER expression                       { print_string ("\nBoolean expr: " ^ string_of_int($1) ^ " > " ^ string_of_int($3)); (1) }
-|   LEFT_PAREN boolean RIGHT_PAREN                      { print_string ("\nBoolean expr: " ^ string_of_int($2)); (1) }
+|   TRUE                                                { True }
+|   FALSE                                               { False }
+|   e1 = expression op = EQUALS e2 = expression         { BoolExpr (e1, Equals, e2) }
+|   e1 = expression op = GREATER e2 = expression        { BoolExpr (e1, Greater, e2) }
+|   LEFT_PAREN b = boolean RIGHT_PAREN                  { b }
 
 block :
 |   LEFT_CURLY cs = commands RIGHT_CURLY                     { cs }

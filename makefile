@@ -26,7 +26,7 @@ compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
 	@echo "Generated ${PARSER}.cmo\n"
 	ocamlc -c ${EXEC}.ml
 	@echo "Generated ${EXEC}.cmo\n"
-	ocamlc -o minioo ${TYPE}.cmo ${LEXER}.cmo ${PARSER}.cmo ${AST}.cmo ${EXEC}.cmo
+	ocamlc -o minioo ${TYPE}.cmo ${AST}.cmo ${LEXER}.cmo ${PARSER}.cmo ${EXEC}.cmo
 	@echo "Generated final executable ./${EXEC}"
 
 trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
@@ -48,7 +48,7 @@ trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
 	@echo "Generated ${PARSER}.cmo\n"
 	ocamlc -c ${EXEC}.ml
 	@echo "Generated ${EXEC}.cmo\n"
-	ocamlc -o minioo ${TYPE}.cmo ${LEXER}.cmo ${PARSER}.cmo ${AST}.cmo ${EXEC}.cmo
+	ocamlc -o minioo ${TYPE}.cmo ${AST}.cmo ${LEXER}.cmo ${PARSER}.cmo ${EXEC}.cmo
 	@echo "Generated final executable ./${EXEC}"
 
 clean:

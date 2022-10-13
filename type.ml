@@ -1,3 +1,40 @@
+(*
+  Expressions   
+*)
+
+type iden = {
+  id: string;
+  value: string;
+}
+
+type field = {
+  id: string;
+}
+
+type proc = {
+  arg: string;
+} 
+
+type loc_expr = {
+  obj: string;
+  field: string;
+}
+
+type minus_expr = {
+  arg1: string;
+  arg2: string;
+}
+
+(*
+  Booleans
+*)
+
+
+
+(*
+  Commands   
+*)
+
 type decl = {
   id: string;
 }
