@@ -15,7 +15,7 @@
 %type <int> if_else loop 
 %type <bln> boolean
 %type <Ast.cmd list> commands block
-%type <Ast.cmd> command
+%type <Ast.cmd list> command
 %type <Ast.expr> expression
 
 (* Start symbol *)
@@ -32,25 +32,25 @@ program :
 |   cs = commands EOL                                        { cs }
 
 commands :              
-|   c1 = command SEMICOLON c2s = commands               { 
-                                                            (c1::c2s) 
+|   c1s = command SEMICOLON c2s = commands               { 
+                                                            (c1s@c2s)
                                                         }
-|   c = command                                         { [c] }
-|   c = command SEMICOLON                               { [c] }
+|   c = command                                         { c }
+|   c = command SEMICOLON                               { c }
 
 command :
 (* Declaration and assignment must be done separately *)
-|   VAR id = IDENTIFIER                                 { Decl {id;} }
-|   id = IDENTIFIER ASSIGN expr = expression            { Asmt {id=id; value=Ast.str_of_expr(expr);} }
-|   e1 = expression LEFT_PAREN e2 = expression RIGHT_PAREN        { ProcCall ("\nCommand proc call:" ^ str_of_expr(e1) ^ " (" ^ str_of_expr(e2) ^ ")") }
-|   e1 = expression DOT e2 = expression ASSIGN e3 = expression  { FieldAsmt {field=(Ast.str_of_expr(e1)^"."^Ast.str_of_expr(e2)); value=Ast.str_of_expr(e3)} }
-|   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN       { Malloc {id;} }
-|   SKIP                                                { Skip }
-|   b = block                                           { Block b }
-|   LEFT_CURLY cs1 = commands PARALLEL cs2 = commands RIGHT_CURLY   { Parallel (cs1, cs2) }
-|   ATOM LEFT_PAREN cs = commands RIGHT_PAREN           { Atom (cs) }
-|   if_else                                             { ProcCall ("") }
-|   loop                                                { ProcCall ("") }
+|   VAR id = IDENTIFIER                                 { [Decl {id;}] }
+|   id = IDENTIFIER ASSIGN expr = expression            { [Asmt {id=id; value=Ast.str_of_expr(expr);}] }
+|   e1 = expression LEFT_PAREN e2 = expression RIGHT_PAREN        { [ProcCall ("\nCommand proc call:" ^ str_of_expr(e1) ^ " (" ^ str_of_expr(e2) ^ ")")] }
+|   e1 = expression DOT e2 = expression ASSIGN e3 = expression  { [FieldAsmt {field=(Ast.str_of_expr(e1)^"."^Ast.str_of_expr(e2)); value=Ast.str_of_expr(e3)}] }
+|   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN       { [Malloc {id;}] }
+|   SKIP                                                { [Skip] }
+|   b = block                                           { [Block b] }
+|   c1 = block PARALLEL c2 = block                      { [Parallel (c1, c2)] }
+|   ATOM c = block RIGHT_PAREN                          { [Atom (c)] }
+|   if_else                                             { [ProcCall ("")] }
+|   loop                                                { [ProcCall ("")] }
 
 expression :
 |   NULL                                                { Null }
@@ -72,7 +72,7 @@ boolean :
 block :
 |   LEFT_CURLY cs = commands RIGHT_CURLY                     { cs }
 
-(* To avoid parsing ambiguity of dangling statements, each block is delimited by blocks (curly braces) *)
+(* To avoid parsing ambiguity of dangling statements, each block is delimited by curly braces *)
 
 if_else :
 |   IF boolean block ELSE block                         { print_string ("\nIf else command"); (3) }
