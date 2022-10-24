@@ -16,7 +16,6 @@ compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
 	menhir ${PARSER}.mly
 	@echo "Generated ${PARSER}.ml, ${PARSER}.mli\n"
 
-	
 	ocamlc -c ${PARSER}.mli	
 	@echo "Generated ${PARSER}.cmi\n"
 
@@ -30,15 +29,17 @@ compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
 	@echo "Generated final executable ./${EXEC}"
 
 trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${EXEC}.ml
+
+	ocamlc -c ${TYPE}.ml
+	@echo "Generated ${TYPE}.cmo\n"
+	ocamlc -c ${AST}.ml
+	@echo "Generated ${AST}.cmo\n"
+
 	ocamllex ${LEXER}.mll
 	@echo "Generated ${LEXER}.ml"
 	menhir --explain ${PARSER}.mly
 	@echo "Generated ${PARSER}.ml, ${PARSER}.mli\n"
 
-	ocamlc -c ${AST}.ml
-	@echo "Generated ${AST}.cmo\n"
-	ocamlc -c ${TYPE}.ml
-	@echo "Generated ${TYPE}.cmo\n"
 	ocamlc -c ${PARSER}.mli	
 	@echo "Generated ${PARSER}.cmi\n"
 

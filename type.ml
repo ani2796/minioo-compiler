@@ -39,10 +39,16 @@ type asmt = {
 }
 
 type field_asmt = {
+  obj: string;
   field: string;
   value: string;
 }
 
 type malloc = {
   id: string;
+}
+
+type proc_call = {
+  id: string;
+  arg: string;
 }

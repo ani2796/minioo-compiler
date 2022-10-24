@@ -3,7 +3,7 @@ open Type;;
 type cmd = 
 | Decl of Type.decl
 | Asmt of Type.asmt
-| ProcCall of string
+| ProcCall of Type.proc_call
 | Block of cmd list
 | FieldAsmt of Type.field_asmt
 | Malloc of Type.malloc
@@ -47,25 +47,7 @@ let str_of_bool b = match b with
 | False -> "false"
 | BoolExpr (e1, op, e2) -> str_of_expr(e1) ^ str_of_compareop(op) ^ str_of_expr(e2)
 
-let rec map f l = match l with
-| [] -> []
-| el::rem -> (f el)::(map f rem)
 
-let rec str_of_str_list l = match l with
-| [] -> "\n"
-| el::rem -> (el ^ "\n" ^ (str_of_str_list rem))
-
-let rec str_of_cmd c = match c with
-| Decl d -> "New var " ^ d.id
-| Asmt a -> a.id ^ " = " ^ a.value
-| ProcCall pc -> pc
-| Block b -> (str_of_str_list (map str_of_cmd b))
-| FieldAsmt fa -> (fa.field ^ ": " ^ fa.value)
-| Malloc m -> m.id
-| Skip -> "skip"
-| Parallel (cs1, cs2) -> (str_of_str_list (map str_of_cmd cs1)) ^ 
-                          "\n||\n" ^ (str_of_str_list (map str_of_cmd cs2))
-| Atom a -> (str_of_str_list (map str_of_cmd a))
 
 (*
 type cmd = 
