@@ -26,12 +26,6 @@ type minus_expr = {
 }
 
 (*
-  Booleans
-*)
-
-
-
-(*
   Commands   
 *)
 

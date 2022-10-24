@@ -11,7 +11,7 @@
 %token <string> IDENTIFIER FIELD
 %token <int> INTEGER
 
-%type <unit> program 
+%type <Ast.cmd list> program
 %type <int> if_else loop 
 %type <bln> boolean
 %type <Ast.cmd list> commands block
@@ -29,7 +29,7 @@
 (* Context-free Grammar *)
 
 program : 
-|   commands EOL                                        { () }
+|   cs = commands EOL                                        { cs }
 
 commands :              
 |   c1 = command SEMICOLON c2s = commands               { 
@@ -42,7 +42,7 @@ command :
 (* Declaration and assignment must be done separately *)
 |   VAR id = IDENTIFIER                                 { Decl {id;} }
 |   id = IDENTIFIER ASSIGN expr = expression            { Asmt {id=id; value=Ast.str_of_expr(expr);} }
-|   expression LEFT_PAREN expression RIGHT_PAREN        { ProcCall ("\nCommand proc call: ()") }
+|   e1 = expression LEFT_PAREN e2 = expression RIGHT_PAREN        { ProcCall ("\nCommand proc call:" ^ str_of_expr(e1) ^ " (" ^ str_of_expr(e2) ^ ")") }
 |   e1 = expression DOT e2 = expression ASSIGN e3 = expression  { FieldAsmt {field=(Ast.str_of_expr(e1)^"."^Ast.str_of_expr(e2)); value=Ast.str_of_expr(e3)} }
 |   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN       { Malloc {id;} }
 |   SKIP                                                { Skip }
