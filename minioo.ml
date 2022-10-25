@@ -41,6 +41,8 @@ let rec print_cmd c indent = match c with
 | Skip -> (print_indent_string indent ("Skip"));
 | Parallel (c1s, c2s) -> (print_block c1s (indent+1)); (print_indent_string indent ("|||\n")); (print_block c2s (indent+1));
 | Atom a -> (print_indent_string indent ("Atom: ")); (print_block a (indent+1));
+| IfElse (b, b1, b2) -> (print_indent_string indent ("If " ^ str_of_bool(b) ^ "\n")); (print_block b1 (indent+1)); (print_indent_string indent ("Else \n")); (print_block b2 (indent+1));
+| Loop (b, b1) -> (print_indent_string indent ("Loop " ^ str_of_bool(b))); (print_block b1 (indent+1));
 and print_block cs indent = match cs with
 | [] -> ()
 | c1::c2s -> (print_cmd  c1 indent); (print_block c2s indent);

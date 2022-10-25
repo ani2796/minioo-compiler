@@ -12,7 +12,7 @@
 %token <int> INTEGER
 
 %type <Ast.cmd list> program
-%type <int> if_else loop
+%type <Ast.cmd> if_else loop
 %type <bln> boolean
 %type <Ast.cmd list> commands block
 %type <Ast.cmd list> command
@@ -47,8 +47,8 @@ command :
 |   b = block                                                       { [Block b] }
 |   c1 = block PARALLEL c2 = block                                  { [Parallel (c1, c2)] }
 |   ATOM c = block RIGHT_PAREN                                      { [Atom (c)] }
-|   if_else                                                         { [] }
-|   loop                                                            { [] }
+|   ie = if_else                                                    { [ie] }
+|   l = loop                                                        { [l] }
 
 expression :
 |   NULL                                                            { Null }
@@ -72,7 +72,7 @@ block :
 |   LEFT_CURLY cs = commands RIGHT_CURLY                            { cs }
 
 if_else :
-|   IF boolean block ELSE block                                     { print_string ("\nIf else command"); (3) }
+|   IF b = boolean b1 = block ELSE b2 = block                       { IfElse (b, b1, b2) }
 
 loop :
-|   WHILE boolean block                                             { print_string ("\nWhile command"); (3) }
+|   WHILE b = boolean b1 = block                                    { Loop (b, b1) }

@@ -11,7 +11,7 @@ type field = {
   id: string;
 }
 
-type proc = {
+type proc_arg = {
   arg: string;
 } 
 
