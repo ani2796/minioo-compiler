@@ -16,7 +16,7 @@ and compareOp =
 and  bln = 
 | True
 | False
-| BoolExpr of expr * compareOp * expr
+| BoolExpr of compareOp * expr * expr
 
 and cmd = 
 | Decl of Type.decl
@@ -48,22 +48,4 @@ let str_of_compareop op = match op with
 let str_of_bool b = match b with
 | True -> "true"
 | False -> "false"
-| BoolExpr (e1, op, e2) -> str_of_expr(e1) ^ str_of_compareop(op) ^ str_of_expr(e2)
-
-
-
-(*
-type cmd = 
-| Cmds of string * cmd
-| Cmd of string
-
-let rec indent num = match num with
-| 0 -> ()
-| n -> print_string " "; (indent (num - 1))
-
-let rec num_cmds c i = match c with 
-| Cmds (c1, c2) -> (indent i); (print_string ((c1) ^ "\n")); (1 + (num_cmds c2 (i)))
-| Cmd c -> (indent i); (print_string ((c) ^ "\n")); (1)
-;;
-
-*)
+| BoolExpr (op, e1, e2) -> str_of_expr(e1) ^ str_of_compareop(op) ^ str_of_expr(e2)

@@ -63,8 +63,8 @@ expression :
 boolean :
 |   TRUE                                                            { True }
 |   FALSE                                                           { False }
-|   e1 = expression op = EQUALS e2 = expression                     { BoolExpr (e1, Equals, e2) }
-|   e1 = expression op = GREATER e2 = expression                    { BoolExpr (e1, Greater, e2) }
+|   e1 = expression op = EQUALS e2 = expression                     { BoolExpr (Equals, e1, e2) }
+|   e1 = expression op = GREATER e2 = expression                    { BoolExpr (Greater, e1, e2) }
 |   LEFT_PAREN b = boolean RIGHT_PAREN                              { b }
 
 (* To avoid parsing ambiguity of dangling statements, each block is delimited by curly braces *)
