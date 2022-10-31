@@ -5,19 +5,9 @@ let ast =
   let lexbuf = Lexing.from_channel stdin in
     Parse.program Lex.token lexbuf;;
 
-(*let print_ast ast = match ast with
-| Ast.cmd c1::cs -> print
 
-
-let rec indent_string count = match count with
-| 0 -> ""
-| num -> "\t" ^ (indent_string (num-1))
-
-let rec print_cmd c indent = match c with
-| Block b -> 
-| 
-*)
-
+(* Pretty-printing the AST *)
+  
 let rec map f l = match l with 
 | [] -> []
 | el::rem -> (f el)::(map f rem)
@@ -46,7 +36,6 @@ let rec print_cmd c indent = match c with
 and print_block cs indent = match cs with
 | [] -> ()
 | c1::c2s -> (print_cmd  c1 indent); (print_block c2s indent);
-
 ;;
 
 let rec print_ast ast = match ast with
@@ -57,6 +46,39 @@ let rec print_ast ast = match ast with
 print_ast ast
 ;;
 
+(* Checking static semantics (symbol table) *)
+
+type symbolTableType = { decls: string list; blocks: symbolTableType list; }
+let symbolTable = { decls = []; blocks = []; }
+
+
+
+let rec buildSymbolTable ast s = match ast with
+| [] -> s (* no cmd, no action *)
+| el::rem -> (* depending on the cmd, you do different things *)
+  (* Analyze el and mutate symbol table *)
+  (* Recurse on rem *)
+  match el with
+  | Decl decl -> (buildSymbolTable rem {decls=(decl.id::s.decls); blocks=s.blocks})
+  | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=(buildSymbolTable b {decls=[];blocks=[]})::s.blocks })
+  | _ -> (buildSymbolTable rem s)
+
+let rec print_declarations decls = match decls with
+| [] -> ()
+| el::rem -> (print_string (el ^ " ")); (print_declarations rem); (print_string "\n");;
+
+let rec print_symbol_table s indent = 
+  (print_string "\n");
+  (print_indent indent);
+  (print_string "Declarations: ");
+  (print_declarations s.decls);
+  (print_st_blocks s.blocks (indent+1))
+
+and print_st_blocks blocks indent = match blocks with
+| [] -> ()
+| el::rem -> (print_symbol_table el (indent)); (print_symbol_table {decls=[]; blocks=rem} indent);;
+
+print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];}) 0;;
 (*
 print_string "\n\n";;
 (Ast.num_cmds ast 1);;
