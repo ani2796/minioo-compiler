@@ -1,5 +1,9 @@
 (*let ast = *)
 open Ast;;
+open List;;
+
+exception NotDeclared of string;;
+exception Failed of string;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
@@ -48,10 +52,33 @@ print_ast ast
 
 (* Checking static semantics (symbol table) *)
 
-type symbolTableType = { decls: string list; blocks: symbolTableType list; }
-let symbolTable = { decls = []; blocks = []; }
+type symbolTableType = { 
+  decls: string list; 
+  blocks: symbolTableType list; 
+  parent: symbolTableType option;
+}
+
+let symbolTable = { 
+  decls = []; 
+  blocks = []; 
+  parent = None;
+}
+
+let rec exists var decls = match decls with
+| [] -> false
+| el::rem -> if(var = el) then true else (exists var rem);;
+
+let rec staticScopeCheck var symtab = 
+  if(exists var symtab.decls) then true else
+    match symtab with
+    | {decls; blocks; parent} -> match parent with
+      | None -> false
+      | Some p -> (staticScopeCheck var p)
 
 
+let asmtStaticScopeCheck asmt s = match asmt with 
+| Asmt a -> if(staticScopeCheck a.id s) then true else false
+| _ -> false;;
 
 let rec buildSymbolTable ast s = match ast with
 | [] -> s (* no cmd, no action *)
@@ -59,26 +86,27 @@ let rec buildSymbolTable ast s = match ast with
   (* Analyze el and mutate symbol table *)
   (* Recurse on rem *)
   match el with
-  | Decl decl -> (buildSymbolTable rem {decls=(decl.id::s.decls); blocks=s.blocks})
-  | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=(buildSymbolTable b {decls=[];blocks=[]})::s.blocks })
-  | _ -> (buildSymbolTable rem s)
+  | Decl decl -> (buildSymbolTable rem {decls=(decl.id::s.decls); blocks=s.blocks; parent=Some s})
+  | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=((buildSymbolTable b {decls=[];blocks=[];parent=None})::s.blocks); parent = Some s})
+  | Asmt a -> (* Run a static scope check on variables, if any, before recursing *) 
+    (print_string "Running static scope checker...\n");
+    if(asmtStaticScopeCheck el s) then
+      (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent= Some s})
+    else 
+      raise (NotDeclared a.id)
+  | _ -> (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent=Some s})
 
 let rec print_declarations decls = match decls with
 | [] -> ()
-| el::rem -> (print_string (el ^ " ")); (print_declarations rem); (print_string "\n");;
+| el::rem -> (print_string (el ^ " ")); (print_declarations rem);;
 
 let rec print_symbol_table s indent = 
-  (print_string "\n");
   (print_indent indent);
-  (print_string "Declarations: ");
-  (print_declarations s.decls);
-  (print_st_blocks s.blocks (indent+1))
+  (print_string "Decls: ");
+  (print_declarations s.decls);;
 
-and print_st_blocks blocks indent = match blocks with
-| [] -> ()
-| el::rem -> (print_symbol_table el (indent)); (print_symbol_table {decls=[]; blocks=rem} indent);;
 
-print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];}) 0;;
+print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];parent=None}) 0;;
 (*
 print_string "\n\n";;
 (Ast.num_cmds ast 1);;
