@@ -7,7 +7,8 @@ exception Failed of string;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
-    Parse.program Lex.token lexbuf;;
+    Parse.program Lex.token lexbuf
+;;
 
 
 (* Pretty-printing the AST *)
@@ -15,10 +16,12 @@ let ast =
 let rec map f l = match l with 
 | [] -> []
 | el::rem -> (f el)::(map f rem)
+;;
 
 let rec print_indent count = match count with
 | 0 -> (print_string "")
 | num -> (print_string " "); (print_indent (num-1))
+;;
 
 let rec print_indent_string indent str = 
   print_indent(indent);
@@ -56,17 +59,18 @@ type symbolTableType = {
   decls: string list; 
   blocks: symbolTableType list; 
   parent: symbolTableType option;
-}
+};;
 
 let symbolTable = { 
   decls = []; 
   blocks = []; 
   parent = None;
-}
+};;
 
 let rec exists var decls = match decls with
 | [] -> false
-| el::rem -> if(var = el) then true else (exists var rem);;
+| el::rem -> if(var = el) then true else (exists var rem)
+;;
 
 let rec staticScopeCheck var symtab = 
   if(exists var symtab.decls) then true else
@@ -74,11 +78,12 @@ let rec staticScopeCheck var symtab =
     | {decls; blocks; parent} -> match parent with
       | None -> false
       | Some p -> (staticScopeCheck var p)
-
+;;
 
 let asmtStaticScopeCheck asmt s = match asmt with 
 | Asmt a -> if(staticScopeCheck a.id s) then true else false
-| _ -> false;;
+| _ -> false
+;;
 
 let rec buildSymbolTable ast s = match ast with
 | [] -> s (* no cmd, no action *)
@@ -95,15 +100,18 @@ let rec buildSymbolTable ast s = match ast with
     else 
       raise (NotDeclared a.id)
   | _ -> (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent=Some s})
+;;
 
 let rec print_declarations decls = match decls with
 | [] -> ()
-| el::rem -> (print_string (el ^ " ")); (print_declarations rem);;
+| el::rem -> (print_string (el ^ " ")); (print_declarations rem)
+;;
 
 let rec print_symbol_table s indent = 
   (print_indent indent);
   (print_string "Decls: ");
-  (print_declarations s.decls);;
+  (print_declarations s.decls)
+;;
 
 
 print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];parent=None}) 0;;
