@@ -91,15 +91,15 @@ let rec buildSymbolTable ast s = match ast with
   (* Analyze el and mutate symbol table *)
   (* Recurse on rem *)
   match el with
-  | Decl decl -> (buildSymbolTable rem {decls=(decl.id::s.decls); blocks=s.blocks; parent=Some s})
-  | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=((buildSymbolTable b {decls=[];blocks=[];parent=None})::s.blocks); parent = Some s})
+  | Decl decl -> (buildSymbolTable rem {decls=(decl.id::s.decls); blocks=s.blocks; parent=s.parent})
+  | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=((buildSymbolTable b {decls=[];blocks=[];parent=Some s})::s.blocks); parent=s.parent})
   | Asmt a -> (* Run a static scope check on variables, if any, before recursing *) 
     (print_string "Running static scope checker...\n");
     if(asmtStaticScopeCheck el s) then
-      (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent= Some s})
+      (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent= s.parent})
     else 
       raise (NotDeclared a.id)
-  | _ -> (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent=Some s})
+  | _ -> (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent=s.parent})
 ;;
 
 let rec print_declarations decls = match decls with
@@ -107,12 +107,16 @@ let rec print_declarations decls = match decls with
 | el::rem -> (print_string (el ^ " ")); (print_declarations rem)
 ;;
 
-let rec print_symbol_table s indent = 
+let rec print_blocks blocks indent = match blocks with
+| [] -> ();
+| el::rem ->
+  (print_symbol_table el (indent+1));
+  (print_blocks rem indent);
+and print_symbol_table s indent = 
   (print_indent indent);
   (print_string "Decls: ");
-  (print_declarations s.decls)
+  (print_declarations s.decls);
 ;;
-
 
 print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];parent=None}) 0;;
 (*
