@@ -3,6 +3,7 @@ open Ast;;
 open List;;
 
 exception NotDeclared of string;;
+exception Redeclared of string;;
 exception Failed of string;;
 
 let ast = 
@@ -29,8 +30,8 @@ let rec print_indent_string indent str =
 ;; 
 
 let rec print_cmd c indent = match c with
-| Decl d -> (print_indent_string indent ("Decl of " ^ d.id ^ "\n"));
-| Asmt a -> (print_indent_string indent ("Asmt of " ^ a.value ^ " to " ^ a.id ^ "\n"));
+| Decl d -> (print_indent_string indent ("Decl of " ^ d ^ "\n"));
+| Asmt (id, expr) -> (print_indent_string indent ("Asmt " ^ " to " ^ id ^ "\n"));
 | ProcCall pc -> (print_indent_string indent ("Proc call " ^ pc.id ^ "(" ^ pc.arg ^ ")\n"));
 | Block b -> (print_block b (indent+1));
 | FieldAsmt fa -> (print_indent_string indent ("Field assigment: " ^ fa.obj ^ "." ^ fa.field ^ " = " ^ fa.value));
@@ -81,8 +82,15 @@ let rec staticScopeCheck var symtab =
 ;;
 
 let asmtStaticScopeCheck asmt s = match asmt with 
-| Asmt a -> if(staticScopeCheck a.id s) then true else false
+| Asmt (id, expr) -> if(staticScopeCheck id s) then true else false
 | _ -> false
+;;
+
+let declStaticScopeCheck decl s = 
+  if(exists decl s.decls) then 
+    (false) 
+  else 
+    (true)
 ;;
 
 let rec buildSymbolTable ast s = match ast with
@@ -91,35 +99,37 @@ let rec buildSymbolTable ast s = match ast with
   (* Analyze el and mutate symbol table *)
   (* Recurse on rem *)
   match el with
-  | Decl decl -> (buildSymbolTable rem {decls=(decl.id::s.decls); blocks=s.blocks; parent=s.parent})
+  | Decl decl -> 
+      (* Run to make sure no redeclarations *)
+      if(declStaticScopeCheck decl s) then
+        (buildSymbolTable rem {decls=(decl::s.decls); blocks=s.blocks; parent=s.parent})
+      else
+        raise (Redeclared decl)
   | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=((buildSymbolTable b {decls=[];blocks=[];parent=Some s})::s.blocks); parent=s.parent})
-  | Asmt a -> (* Run a static scope check on variables, if any, before recursing *) 
-    (print_string "Running static scope checker...\n");
-    if(asmtStaticScopeCheck el s) then
-      (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent= s.parent})
-    else 
-      raise (NotDeclared a.id)
+  | Asmt (id, expr) -> (* Run a static scope check on variables, if any, before recursing *) 
+      (print_string "Running static scope checker...\n");
+      if(asmtStaticScopeCheck el s) then
+        (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent= s.parent})
+      else 
+        raise (NotDeclared id)
+  
   | _ -> (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent=s.parent})
-;;
 
-let rec print_declarations decls = match decls with
+and  print_declarations decls = match decls with
 | [] -> ()
 | el::rem -> (print_string (el ^ " ")); (print_declarations rem)
-;;
 
-let rec print_blocks blocks indent = match blocks with
+and print_blocks blocks indent = match blocks with
 | [] -> ();
 | el::rem ->
   (print_symbol_table el (indent+1));
   (print_blocks rem indent);
 and print_symbol_table s indent = 
   (print_indent indent);
-  (print_string "Decls: ");
+  (print_string "Symbol table decls: ");
   (print_declarations s.decls);
+  (print_string "\n");
+  (print_blocks s.blocks indent);
 ;;
 
 print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];parent=None}) 0;;
-(*
-print_string "\n\n";;
-(Ast.num_cmds ast 1);;
-*)

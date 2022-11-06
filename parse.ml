@@ -310,7 +310,7 @@ let _menhir_action_07 =
   fun id ->
     (
 # 41 "parse.mly"
-                                                                    ( [Decl {id;}] )
+                                                                    ( [Decl id] )
 # 315 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -322,7 +322,7 @@ let _menhir_action_08 =
   fun expr id ->
     (
 # 42 "parse.mly"
-                                                                    ( [Asmt {id=id; value=Ast.str_of_expr(expr);}] )
+                                                                    ( [Asmt (id, expr)] )
 # 327 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -502,7 +502,7 @@ let _menhir_action_23 =
   fun id ->
     (
 # 56 "parse.mly"
-                                                                    ( Id {id; value="";} )
+                                                                    ( Id id )
 # 507 "parse.ml"
      : (
 # 19 "parse.mly"

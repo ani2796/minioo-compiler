@@ -29,10 +29,6 @@ type minus_expr = {
   Commands   
 *)
 
-type decl = {
-  id: string;
-}
-
 type asmt = {
   id: string;
   value: string;

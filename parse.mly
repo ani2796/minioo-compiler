@@ -38,8 +38,8 @@ commands :
 
 command :
 (* Declaration and assignment must be done separately *)
-|   VAR id = IDENTIFIER                                             { [Decl {id;}] }
-|   id = IDENTIFIER ASSIGN expr = expression                        { [Asmt {id=id; value=Ast.str_of_expr(expr);}] }
+|   VAR id = IDENTIFIER                                             { [Decl id] }
+|   id = IDENTIFIER ASSIGN expr = expression                        { [Asmt (id, expr)] }
 |   e1 = expression LEFT_PAREN e2 = expression RIGHT_PAREN          { [ProcCall {id=Ast.str_of_expr(e1); arg=Ast.str_of_expr(e2)}] }
 |   e1 = expression DOT e2 = expression ASSIGN e3 = expression      { [FieldAsmt {obj=Ast.str_of_expr(e1); field=Ast.str_of_expr(e2); value=Ast.str_of_expr(e3)}] }
 |   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN                   { [Malloc {id;}] }
@@ -53,7 +53,7 @@ command :
 expression :
 |   NULL                                                            { Null }
 |   PROC arg = IDENTIFIER COLON b = block                           { Proc ({arg}, b) }
-|   id = IDENTIFIER                                                 { Id {id; value="";} }
+|   id = IDENTIFIER                                                 { Id id }
 |   f = FIELD                                                       { Field {id=f;} }
 |   e1 = expression DOT e2 = expression                             { LocExpr ({obj=str_of_expr(e1); field=str_of_expr(e2);}, e1, e2) }
 |   i = INTEGER                                                     { Int i }

@@ -2,8 +2,8 @@ open Type;;
 
 type expr = 
 | Null
-| Proc of Type.proc_arg * cmd list
-| Id of Type.iden
+| Proc of proc_arg * cmd list
+| Id of string
 | Field of Type.field
 | LocExpr of Type.loc_expr * expr * expr
 | Int of int
@@ -19,8 +19,8 @@ and  bln =
 | BoolExpr of compareOp * expr * expr
 
 and cmd = 
-| Decl of Type.decl
-| Asmt of Type.asmt
+| Decl of string
+| Asmt of string * expr
 | ProcCall of Type.proc_call
 | Block of cmd list
 | FieldAsmt of Type.field_asmt
@@ -35,7 +35,7 @@ and cmd =
 let rec str_of_expr s = match s with
 | Null -> "null"
 | Proc (a, cs) -> a.arg
-| Id i -> i.id
+| Id i -> i
 | Field f -> f.id
 | LocExpr (l, e1, e2) ->  (l.obj ^ "." ^ l.field)
 | Int i -> string_of_int(i)
