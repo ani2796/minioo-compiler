@@ -2,3 +2,4 @@
 *.cmo
 *.cmi
 parse.conflicts
+temp.ml

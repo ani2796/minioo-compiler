@@ -4,7 +4,7 @@ open List;;
 
 exception NotDeclared of string;;
 exception Redeclared of string;;
-exception Failed of string;;
+exception Unexpected;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
@@ -54,82 +54,20 @@ let rec print_ast ast = match ast with
 print_ast ast
 ;;
 
+
+type variable = {
+  name: string;
+}
+
 (* Checking static semantics (symbol table) *)
+(*
+  Symbol table is declared at each node.
+  |-----> Symbol table contains the variable name and a pointer to the heap added later.
+  We will create an "enhanced" AST with symbol tables.
+  Traverse through the AST.
+  For every declaration, add variable    
+  Good luck, be brave and don't have fear
+  You can do this
+*)
 
-type symbolTableType = { 
-  decls: string list; 
-  blocks: symbolTableType list; 
-  parent: symbolTableType option;
-};;
-
-let symbolTable = { 
-  decls = []; 
-  blocks = []; 
-  parent = None;
-};;
-
-let rec exists var decls = match decls with
-| [] -> false
-| el::rem -> if(var = el) then true else (exists var rem)
-;;
-
-let rec staticScopeCheck var symtab = 
-  if(exists var symtab.decls) then true else
-    match symtab with
-    | {decls; blocks; parent} -> match parent with
-      | None -> false
-      | Some p -> (staticScopeCheck var p)
-;;
-
-let asmtStaticScopeCheck asmt s = match asmt with 
-| Asmt (id, expr) -> if(staticScopeCheck id s) then true else false
-| _ -> false
-;;
-
-let declStaticScopeCheck decl s = 
-  if(exists decl s.decls) then 
-    (false) 
-  else 
-    (true)
-;;
-
-let rec buildSymbolTable ast s = match ast with
-| [] -> s (* no cmd, no action *)
-| el::rem -> (* depending on the cmd, you do different things *)
-  (* Analyze el and mutate symbol table *)
-  (* Recurse on rem *)
-  match el with
-  | Decl decl -> 
-      (* Run to make sure no redeclarations *)
-      if(declStaticScopeCheck decl s) then
-        (buildSymbolTable rem {decls=(decl::s.decls); blocks=s.blocks; parent=s.parent})
-      else
-        raise (Redeclared decl)
-  | Block b -> (buildSymbolTable rem {decls=s.decls; blocks=((buildSymbolTable b {decls=[];blocks=[];parent=Some s})::s.blocks); parent=s.parent})
-  | Asmt (id, expr) -> (* Run a static scope check on variables, if any, before recursing *) 
-      (print_string "Running static scope checker...\n");
-      if(asmtStaticScopeCheck el s) then
-        (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent= s.parent})
-      else 
-        raise (NotDeclared id)
-  
-  | _ -> (buildSymbolTable rem {decls=s.decls; blocks=s.blocks; parent=s.parent})
-
-and  print_declarations decls = match decls with
-| [] -> ()
-| el::rem -> (print_string (el ^ " ")); (print_declarations rem)
-
-and print_blocks blocks indent = match blocks with
-| [] -> ();
-| el::rem ->
-  (print_symbol_table el (indent+1));
-  (print_blocks rem indent);
-and print_symbol_table s indent = 
-  (print_indent indent);
-  (print_string "Symbol table decls: ");
-  (print_declarations s.decls);
-  (print_string "\n");
-  (print_blocks s.blocks indent);
-;;
-
-print_symbol_table (buildSymbolTable ast {decls=[]; blocks=[];parent=None}) 0;;
+(* Small step operational semantics *)
