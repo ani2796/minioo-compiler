@@ -5,7 +5,9 @@
 %}
 
 (* Terminal and non-terminal definitions *)
-%token EOL MINUS SEMICOLON COLON ASSIGN GREATER EQUALS DOT PARALLEL
+%token EOL SEMICOLON COLON ASSIGN DOT PARALLEL
+%token GREATER GREATER_EQ LESSER LESSER_EQ EQUALS
+%token<char> PLUS_MINUS TIMES_BY
 %token LEFT_PAREN RIGHT_PAREN LEFT_CURLY RIGHT_CURLY
 %token VAR NULL PROC TRUE FALSE IF ELSE WHILE MALLOC SKIP ATOM
 %token <string> IDENTIFIER FIELD
@@ -22,7 +24,8 @@
 %start program
 
 (* Operator precendence and associativity *)
-%left MINUS
+%left PLUS_MINUS
+%left TIMES_BY
 %left DOT
 
 %%
@@ -58,7 +61,8 @@ expression :
 |   e1 = expression DOT e2 = expression                             { LocExpr (e1, e2) }
 |   i = INTEGER                                                     { Int i }
 |   LEFT_PAREN e = expression RIGHT_PAREN                           { e }
-|   e1 = expression MINUS e2 = expression                           { MinusExpr (e1, e2) }
+|   e1 = expression op = PLUS_MINUS e2 = expression                 { ArithExpr (op, e1, e2) }
+|   e1 = expression op = TIMES_BY e2 = expression                   { ArithExpr (op, e1, e2) }
 
 boolean :
 |   TRUE                                                            { True }

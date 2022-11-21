@@ -20,7 +20,7 @@ and expr =
 | Field of string
 | LocExpr of expr * expr
 | Int of int
-| MinusExpr of expr * expr
+| ArithExpr of char * expr * expr
 
 and compareOp = 
 | Greater
@@ -32,7 +32,6 @@ and  bln =
 | BoolExpr of compareOp * expr * expr
 ;;
 
-
 let rec str_of_expr s = match s with
 | Null -> "null"
 | Proc (a, cs) -> str_of_expr(a)
@@ -40,13 +39,16 @@ let rec str_of_expr s = match s with
 | Field f -> f
 | LocExpr (e1, e2) ->  (str_of_expr(e1) ^ "." ^ str_of_expr(e2))
 | Int i -> string_of_int(i)
-| MinusExpr (e1, e2) ->(str_of_expr(e1) ^ "-" ^ str_of_expr(e2))
+| ArithExpr (arith, e1, e2) ->(str_of_expr(e1) ^ "-" ^ str_of_expr(e2))
+;;
 
-let str_of_compareop op = match op with
+let str_of_cmpop op = match op with
 | Greater -> ">"
 | Equals -> "="
+;;
 
 let str_of_bool b = match b with
 | True -> "true"
 | False -> "false"
-| BoolExpr (op, e1, e2) -> str_of_expr(e1) ^ str_of_compareop(op) ^ str_of_expr(e2)
+| BoolExpr (op, e1, e2) -> str_of_expr(e1) ^ str_of_cmpop(op) ^ str_of_expr(e2)
+;;
