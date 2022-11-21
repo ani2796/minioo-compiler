@@ -22,14 +22,10 @@ and expr =
 | Int of int
 | ArithExpr of char * expr * expr
 
-and compareOp = 
-| Greater
-| Equals
-
 and  bln = 
 | True
 | False
-| BoolExpr of compareOp * expr * expr
+| BoolExpr of string * expr * expr
 ;;
 
 let rec str_of_expr s = match s with
@@ -42,13 +38,8 @@ let rec str_of_expr s = match s with
 | ArithExpr (arith, e1, e2) ->(str_of_expr(e1) ^ "-" ^ str_of_expr(e2))
 ;;
 
-let str_of_cmpop op = match op with
-| Greater -> ">"
-| Equals -> "="
-;;
-
 let str_of_bool b = match b with
 | True -> "true"
 | False -> "false"
-| BoolExpr (op, e1, e2) -> str_of_expr(e1) ^ str_of_cmpop(op) ^ str_of_expr(e2)
+| BoolExpr (op, e1, e2) -> str_of_expr(e1) ^ op ^ str_of_expr(e2)
 ;;

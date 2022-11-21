@@ -6,7 +6,7 @@
 
 (* Terminal and non-terminal definitions *)
 %token EOL SEMICOLON COLON ASSIGN DOT PARALLEL
-%token GREATER GREATER_EQ LESSER LESSER_EQ EQUALS
+%token<string> COMP_OP
 %token<char> PLUS_MINUS TIMES_BY
 %token LEFT_PAREN RIGHT_PAREN LEFT_CURLY RIGHT_CURLY
 %token VAR NULL PROC TRUE FALSE IF ELSE WHILE MALLOC SKIP ATOM
@@ -67,8 +67,7 @@ expression :
 boolean :
 |   TRUE                                                            { True }
 |   FALSE                                                           { False }
-|   e1 = expression op = EQUALS e2 = expression                     { BoolExpr (Equals, e1, e2) }
-|   e1 = expression op = GREATER e2 = expression                    { BoolExpr (Greater, e1, e2) }
+|   e1 = expression op = COMP_OP e2 = expression                    { BoolExpr (op, e1, e2) }
 |   LEFT_PAREN b = boolean RIGHT_PAREN                              { b }
 
 (* To avoid parsing ambiguity of dangling statements, each block is delimited by curly braces *)

@@ -15,21 +15,17 @@ type token =
   | PARALLEL
   | NULL
   | MALLOC
-  | LESSER_EQ
-  | LESSER
   | LEFT_PAREN
   | LEFT_CURLY
   | INTEGER of (int)
   | IF
   | IDENTIFIER of (string)
-  | GREATER_EQ
-  | GREATER
   | FIELD of (string)
   | FALSE
-  | EQUALS
   | EOL
   | ELSE
   | DOT
+  | COMP_OP of (string)
   | COLON
   | ATOM
   | ASSIGN

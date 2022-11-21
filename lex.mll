@@ -32,11 +32,7 @@ rule token = parse
 
 |   '='                         { ASSIGN }
 
-|   "=="                        { EQUALS }
-|   '>'                         { GREATER }
-|   '<'                         { LESSER }
-|   ">="                        { GREATER_EQ }
-|   "<="                        { LESSER_EQ }
+|   ("=="|">"|"<"|">="|"<=") as op { COMP_OP(op) }
 
 |   '*'|'/' as op               { TIMES_BY(op) }
 |   '-'|'+' as op               { PLUS_MINUS(op) }
