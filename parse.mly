@@ -38,11 +38,11 @@ commands :
 
 command :
 (* Declaration and assignment must be done separately *)
-|   VAR id = IDENTIFIER                                             { [Decl id] }
-|   id = IDENTIFIER ASSIGN expr = expression                        { [Asmt (id, expr)] }
-|   e1 = expression LEFT_PAREN e2 = expression RIGHT_PAREN          { [ProcCall {id=Ast.str_of_expr(e1); arg=Ast.str_of_expr(e2)}] }
-|   e1 = expression DOT e2 = expression ASSIGN e3 = expression      { [FieldAsmt {obj=Ast.str_of_expr(e1); field=Ast.str_of_expr(e2); value=Ast.str_of_expr(e3)}] }
-|   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN                   { [Malloc {id;}] }
+|   VAR id = IDENTIFIER                                             { [Decl (Id id)] }
+|   id = IDENTIFIER ASSIGN expr = expression                        { [Asmt (Id id, expr)] }
+|   e1 = expression LEFT_PAREN e2 = expression RIGHT_PAREN          { [ProcCall (e1, e2)] }
+|   e1 = expression DOT e2 = expression ASSIGN e3 = expression      { [FieldAsmt (e1, e2, e3)] }
+|   MALLOC LEFT_PAREN id = IDENTIFIER RIGHT_PAREN                   { [Malloc (Id id)] }
 |   SKIP                                                            { [Skip] }
 |   b = block                                                       { [Block b] }
 |   c1 = block PARALLEL c2 = block                                  { [Parallel (c1, c2)] }
@@ -52,13 +52,13 @@ command :
 
 expression :
 |   NULL                                                            { Null }
-|   PROC arg = IDENTIFIER COLON b = block                           { Proc ({arg}, b) }
+|   PROC arg = IDENTIFIER COLON b = block                           { Proc (Id arg, b) }
 |   id = IDENTIFIER                                                 { Id id }
-|   f = FIELD                                                       { Field {id=f;} }
-|   e1 = expression DOT e2 = expression                             { LocExpr ({obj=str_of_expr(e1); field=str_of_expr(e2);}, e1, e2) }
+|   f = FIELD                                                       { Field f }
+|   e1 = expression DOT e2 = expression                             { LocExpr (e1, e2) }
 |   i = INTEGER                                                     { Int i }
 |   LEFT_PAREN e = expression RIGHT_PAREN                           { e }
-|   e1 = expression MINUS e2 = expression                           { MinusExpr ({arg1=str_of_expr(e1); arg2=str_of_expr(e2);}, e1, e2) }
+|   e1 = expression MINUS e2 = expression                           { MinusExpr (e1, e2) }
 
 boolean :
 |   TRUE                                                            { True }

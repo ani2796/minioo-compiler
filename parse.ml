@@ -310,7 +310,7 @@ let _menhir_action_07 =
   fun id ->
     (
 # 41 "parse.mly"
-                                                                    ( [Decl id] )
+                                                                    ( [Decl (Id id)] )
 # 315 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -322,7 +322,7 @@ let _menhir_action_08 =
   fun expr id ->
     (
 # 42 "parse.mly"
-                                                                    ( [Asmt (id, expr)] )
+                                                                    ( [Asmt (Id id, expr)] )
 # 327 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -334,7 +334,7 @@ let _menhir_action_09 =
   fun e1 e2 ->
     (
 # 43 "parse.mly"
-                                                                    ( [ProcCall {id=Ast.str_of_expr(e1); arg=Ast.str_of_expr(e2)}] )
+                                                                    ( [ProcCall (e1, e2)] )
 # 339 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -346,7 +346,7 @@ let _menhir_action_10 =
   fun e1 e2 e3 ->
     (
 # 44 "parse.mly"
-                                                                    ( [FieldAsmt {obj=Ast.str_of_expr(e1); field=Ast.str_of_expr(e2); value=Ast.str_of_expr(e3)}] )
+                                                                    ( [FieldAsmt (e1, e2, e3)] )
 # 351 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -358,7 +358,7 @@ let _menhir_action_11 =
   fun id ->
     (
 # 45 "parse.mly"
-                                                                    ( [Malloc {id;}] )
+                                                                    ( [Malloc (Id id)] )
 # 363 "parse.ml"
      : (
 # 18 "parse.mly"
@@ -490,7 +490,7 @@ let _menhir_action_22 =
   fun arg b ->
     (
 # 55 "parse.mly"
-                                                                    ( Proc ({arg}, b) )
+                                                                    ( Proc (Id arg, b) )
 # 495 "parse.ml"
      : (
 # 19 "parse.mly"
@@ -514,7 +514,7 @@ let _menhir_action_24 =
   fun f ->
     (
 # 57 "parse.mly"
-                                                                    ( Field {id=f;} )
+                                                                    ( Field f )
 # 519 "parse.ml"
      : (
 # 19 "parse.mly"
@@ -526,7 +526,7 @@ let _menhir_action_25 =
   fun e1 e2 ->
     (
 # 58 "parse.mly"
-                                                                    ( LocExpr ({obj=str_of_expr(e1); field=str_of_expr(e2);}, e1, e2) )
+                                                                    ( LocExpr (e1, e2) )
 # 531 "parse.ml"
      : (
 # 19 "parse.mly"
@@ -562,7 +562,7 @@ let _menhir_action_28 =
   fun e1 e2 ->
     (
 # 61 "parse.mly"
-                                                                    ( MinusExpr ({arg1=str_of_expr(e1); arg2=str_of_expr(e2);}, e1, e2) )
+                                                                    ( MinusExpr (e1, e2) )
 # 567 "parse.ml"
      : (
 # 19 "parse.mly"
