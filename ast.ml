@@ -16,6 +16,7 @@ type cmd =
 and expr = 
 | Null
 | Proc of expr * cmd list
+| En_Proc of expr * en_cmd list
 | Id of string
 | Field of string
 | LocExpr of expr * expr
@@ -26,6 +27,14 @@ and  bln =
 | True
 | False
 | BoolExpr of string * expr * expr
+
+and en_cmd = 
+| En_Cmd of cmd * ((string * int) list)
+| En_Block of en_cmd list
+| En_Parallel of (en_cmd list) * (en_cmd list)
+| En_IfElse of bln * (en_cmd list) * (en_cmd list)
+| En_Atom of (en_cmd list)
+| En_Loop of bln * (en_cmd list)
 ;;
 
 let rec str_of_expr s = match s with
