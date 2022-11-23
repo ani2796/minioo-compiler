@@ -12,7 +12,7 @@ module MenhirBasics = struct
     | VAR
     | TRUE
     | TIMES_BY of (
-# 10 "parse.mly"
+# 9 "parse.mly"
       (char)
 # 18 "parse.ml"
   )
@@ -22,7 +22,7 @@ module MenhirBasics = struct
     | RIGHT_CURLY
     | PROC
     | PLUS_MINUS of (
-# 10 "parse.mly"
+# 9 "parse.mly"
       (char)
 # 28 "parse.ml"
   )
@@ -32,18 +32,18 @@ module MenhirBasics = struct
     | LEFT_PAREN
     | LEFT_CURLY
     | INTEGER of (
-# 14 "parse.mly"
+# 13 "parse.mly"
        (int)
 # 38 "parse.ml"
   )
     | IF
     | IDENTIFIER of (
-# 13 "parse.mly"
+# 12 "parse.mly"
        (string)
 # 44 "parse.ml"
   )
     | FIELD of (
-# 13 "parse.mly"
+# 12 "parse.mly"
        (string)
 # 49 "parse.ml"
   )
@@ -52,7 +52,7 @@ module MenhirBasics = struct
     | ELSE
     | DOT
     | COMP_OP of (
-# 9 "parse.mly"
+# 8 "parse.mly"
       (string)
 # 58 "parse.ml"
   )
@@ -67,10 +67,9 @@ include MenhirBasics
 # 1 "parse.mly"
   
     (* Preamble *)
-    open Type;;
     open Ast;;
 
-# 74 "parse.ml"
+# 73 "parse.ml"
 
 type ('s, 'r) _menhir_state = 
   | MenhirState00 : ('s, _menhir_box_program) _menhir_state
@@ -181,30 +180,30 @@ type ('s, 'r) _menhir_state =
 
 and ('s, 'r) _menhir_cell1_block = 
   | MenhirCell1_block of 's * ('s, 'r) _menhir_state * (
-# 19 "parse.mly"
+# 18 "parse.mly"
       (Ast.cmd list)
-# 187 "parse.ml"
+# 186 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_boolean = 
   | MenhirCell1_boolean of 's * ('s, 'r) _menhir_state * (
-# 18 "parse.mly"
+# 17 "parse.mly"
       (bln)
-# 194 "parse.ml"
+# 193 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_command = 
   | MenhirCell1_command of 's * ('s, 'r) _menhir_state * (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 201 "parse.ml"
+# 200 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_expression = 
   | MenhirCell1_expression of 's * ('s, 'r) _menhir_state * (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 208 "parse.ml"
+# 207 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_ATOM = 
@@ -212,23 +211,23 @@ and ('s, 'r) _menhir_cell1_ATOM =
 
 and 's _menhir_cell0_COMP_OP = 
   | MenhirCell0_COMP_OP of 's * (
-# 9 "parse.mly"
+# 8 "parse.mly"
       (string)
-# 218 "parse.ml"
+# 217 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_IDENTIFIER = 
   | MenhirCell1_IDENTIFIER of 's * ('s, 'r) _menhir_state * (
-# 13 "parse.mly"
+# 12 "parse.mly"
        (string)
-# 225 "parse.ml"
+# 224 "parse.ml"
 )
 
 and 's _menhir_cell0_IDENTIFIER = 
   | MenhirCell0_IDENTIFIER of 's * (
-# 13 "parse.mly"
+# 12 "parse.mly"
        (string)
-# 232 "parse.ml"
+# 231 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_IF = 
@@ -242,9 +241,9 @@ and ('s, 'r) _menhir_cell1_LEFT_PAREN =
 
 and 's _menhir_cell0_PLUS_MINUS = 
   | MenhirCell0_PLUS_MINUS of 's * (
-# 10 "parse.mly"
+# 9 "parse.mly"
       (char)
-# 248 "parse.ml"
+# 247 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_PROC = 
@@ -252,9 +251,9 @@ and ('s, 'r) _menhir_cell1_PROC =
 
 and 's _menhir_cell0_TIMES_BY = 
   | MenhirCell0_TIMES_BY of 's * (
-# 10 "parse.mly"
+# 9 "parse.mly"
       (char)
-# 258 "parse.ml"
+# 257 "parse.ml"
 )
 
 and ('s, 'r) _menhir_cell1_WHILE = 
@@ -262,381 +261,381 @@ and ('s, 'r) _menhir_cell1_WHILE =
 
 and _menhir_box_program = 
   | MenhirBox_program of (
-# 16 "parse.mly"
+# 15 "parse.mly"
       (Ast.cmd list)
-# 268 "parse.ml"
+# 267 "parse.ml"
 ) [@@unboxed]
 
 let _menhir_action_01 =
   fun cs ->
     (
-# 75 "parse.mly"
+# 74 "parse.mly"
                                                                     ( cs )
-# 276 "parse.ml"
+# 275 "parse.ml"
      : (
-# 19 "parse.mly"
+# 18 "parse.mly"
       (Ast.cmd list)
-# 280 "parse.ml"
+# 279 "parse.ml"
     ))
 
 let _menhir_action_02 =
   fun () ->
     (
-# 68 "parse.mly"
+# 67 "parse.mly"
                                                                     ( True )
-# 288 "parse.ml"
+# 287 "parse.ml"
      : (
-# 18 "parse.mly"
+# 17 "parse.mly"
       (bln)
-# 292 "parse.ml"
+# 291 "parse.ml"
     ))
 
 let _menhir_action_03 =
   fun () ->
     (
-# 69 "parse.mly"
+# 68 "parse.mly"
                                                                     ( False )
-# 300 "parse.ml"
+# 299 "parse.ml"
      : (
-# 18 "parse.mly"
+# 17 "parse.mly"
       (bln)
-# 304 "parse.ml"
+# 303 "parse.ml"
     ))
 
 let _menhir_action_04 =
   fun e1 e2 op ->
     (
-# 70 "parse.mly"
+# 69 "parse.mly"
                                                                     ( BoolExpr (op, e1, e2) )
-# 312 "parse.ml"
+# 311 "parse.ml"
      : (
-# 18 "parse.mly"
+# 17 "parse.mly"
       (bln)
-# 316 "parse.ml"
+# 315 "parse.ml"
     ))
 
 let _menhir_action_05 =
   fun b ->
     (
-# 71 "parse.mly"
+# 70 "parse.mly"
                                                                     ( b )
-# 324 "parse.ml"
+# 323 "parse.ml"
      : (
-# 18 "parse.mly"
+# 17 "parse.mly"
       (bln)
-# 328 "parse.ml"
+# 327 "parse.ml"
     ))
 
 let _menhir_action_06 =
   fun id ->
     (
-# 44 "parse.mly"
+# 43 "parse.mly"
                                                                     ( [Decl (Id id)] )
-# 336 "parse.ml"
+# 335 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 340 "parse.ml"
+# 339 "parse.ml"
     ))
 
 let _menhir_action_07 =
   fun expr id ->
     (
-# 45 "parse.mly"
+# 44 "parse.mly"
                                                                     ( [Asmt (Id id, expr)] )
-# 348 "parse.ml"
+# 347 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 352 "parse.ml"
+# 351 "parse.ml"
     ))
 
 let _menhir_action_08 =
   fun e1 e2 ->
     (
-# 46 "parse.mly"
+# 45 "parse.mly"
                                                                     ( [ProcCall (e1, e2)] )
-# 360 "parse.ml"
+# 359 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 364 "parse.ml"
+# 363 "parse.ml"
     ))
 
 let _menhir_action_09 =
   fun e1 e2 e3 ->
     (
-# 47 "parse.mly"
+# 46 "parse.mly"
                                                                     ( [FieldAsmt (e1, e2, e3)] )
-# 372 "parse.ml"
+# 371 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 376 "parse.ml"
+# 375 "parse.ml"
     ))
 
 let _menhir_action_10 =
   fun id ->
     (
-# 48 "parse.mly"
+# 47 "parse.mly"
                                                                     ( [Malloc (Id id)] )
-# 384 "parse.ml"
+# 383 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 388 "parse.ml"
+# 387 "parse.ml"
     ))
 
 let _menhir_action_11 =
   fun () ->
     (
-# 49 "parse.mly"
+# 48 "parse.mly"
                                                                     ( [Skip] )
-# 396 "parse.ml"
+# 395 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 400 "parse.ml"
+# 399 "parse.ml"
     ))
 
 let _menhir_action_12 =
   fun b ->
     (
-# 50 "parse.mly"
+# 49 "parse.mly"
                                                                     ( [Block b] )
-# 408 "parse.ml"
+# 407 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 412 "parse.ml"
+# 411 "parse.ml"
     ))
 
 let _menhir_action_13 =
   fun c1 c2 ->
     (
-# 51 "parse.mly"
+# 50 "parse.mly"
                                                                     ( [Parallel (c1, c2)] )
-# 420 "parse.ml"
+# 419 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 424 "parse.ml"
+# 423 "parse.ml"
     ))
 
 let _menhir_action_14 =
   fun c ->
     (
-# 52 "parse.mly"
+# 51 "parse.mly"
                                                                     ( [Atom (c)] )
-# 432 "parse.ml"
+# 431 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 436 "parse.ml"
+# 435 "parse.ml"
     ))
 
 let _menhir_action_15 =
   fun ie ->
     (
-# 53 "parse.mly"
+# 52 "parse.mly"
                                                                     ( [ie] )
-# 444 "parse.ml"
+# 443 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 448 "parse.ml"
+# 447 "parse.ml"
     ))
 
 let _menhir_action_16 =
   fun l ->
     (
-# 54 "parse.mly"
+# 53 "parse.mly"
                                                                     ( [l] )
-# 456 "parse.ml"
+# 455 "parse.ml"
      : (
-# 20 "parse.mly"
+# 19 "parse.mly"
       (Ast.cmd list)
-# 460 "parse.ml"
+# 459 "parse.ml"
     ))
 
 let _menhir_action_17 =
   fun c1s c2s ->
     (
-# 38 "parse.mly"
+# 37 "parse.mly"
                                                                     ( (c1s@c2s) )
-# 468 "parse.ml"
+# 467 "parse.ml"
      : (
-# 19 "parse.mly"
+# 18 "parse.mly"
       (Ast.cmd list)
-# 472 "parse.ml"
+# 471 "parse.ml"
     ))
 
 let _menhir_action_18 =
   fun c ->
     (
-# 39 "parse.mly"
+# 38 "parse.mly"
                                                                     ( c )
-# 480 "parse.ml"
+# 479 "parse.ml"
      : (
-# 19 "parse.mly"
+# 18 "parse.mly"
       (Ast.cmd list)
-# 484 "parse.ml"
+# 483 "parse.ml"
     ))
 
 let _menhir_action_19 =
   fun c ->
     (
-# 40 "parse.mly"
+# 39 "parse.mly"
                                                                     ( c )
-# 492 "parse.ml"
+# 491 "parse.ml"
      : (
-# 19 "parse.mly"
+# 18 "parse.mly"
       (Ast.cmd list)
-# 496 "parse.ml"
+# 495 "parse.ml"
     ))
 
 let _menhir_action_20 =
   fun () ->
     (
-# 57 "parse.mly"
+# 56 "parse.mly"
                                                                     ( Null )
-# 504 "parse.ml"
+# 503 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 508 "parse.ml"
+# 507 "parse.ml"
     ))
 
 let _menhir_action_21 =
   fun arg b ->
     (
-# 58 "parse.mly"
+# 57 "parse.mly"
                                                                     ( Proc (Id arg, b) )
-# 516 "parse.ml"
+# 515 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 520 "parse.ml"
+# 519 "parse.ml"
     ))
 
 let _menhir_action_22 =
   fun id ->
     (
-# 59 "parse.mly"
+# 58 "parse.mly"
                                                                     ( Id id )
-# 528 "parse.ml"
+# 527 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 532 "parse.ml"
+# 531 "parse.ml"
     ))
 
 let _menhir_action_23 =
   fun f ->
     (
-# 60 "parse.mly"
+# 59 "parse.mly"
                                                                     ( Field f )
-# 540 "parse.ml"
+# 539 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 544 "parse.ml"
+# 543 "parse.ml"
     ))
 
 let _menhir_action_24 =
   fun e1 e2 ->
     (
-# 61 "parse.mly"
+# 60 "parse.mly"
                                                                     ( LocExpr (e1, e2) )
-# 552 "parse.ml"
+# 551 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 556 "parse.ml"
+# 555 "parse.ml"
     ))
 
 let _menhir_action_25 =
   fun i ->
     (
-# 62 "parse.mly"
+# 61 "parse.mly"
                                                                     ( Int i )
-# 564 "parse.ml"
+# 563 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 568 "parse.ml"
+# 567 "parse.ml"
     ))
 
 let _menhir_action_26 =
   fun e ->
     (
-# 63 "parse.mly"
+# 62 "parse.mly"
                                                                     ( e )
-# 576 "parse.ml"
+# 575 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 580 "parse.ml"
+# 579 "parse.ml"
     ))
 
 let _menhir_action_27 =
   fun e1 e2 op ->
     (
-# 64 "parse.mly"
+# 63 "parse.mly"
                                                                     ( ArithExpr (op, e1, e2) )
-# 588 "parse.ml"
+# 587 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 592 "parse.ml"
+# 591 "parse.ml"
     ))
 
 let _menhir_action_28 =
   fun e1 e2 op ->
     (
-# 65 "parse.mly"
+# 64 "parse.mly"
                                                                     ( ArithExpr (op, e1, e2) )
-# 600 "parse.ml"
+# 599 "parse.ml"
      : (
-# 21 "parse.mly"
+# 20 "parse.mly"
       (Ast.expr)
-# 604 "parse.ml"
+# 603 "parse.ml"
     ))
 
 let _menhir_action_29 =
   fun b b1 b2 ->
     (
-# 78 "parse.mly"
+# 77 "parse.mly"
                                                                     ( IfElse (b, b1, b2) )
-# 612 "parse.ml"
+# 611 "parse.ml"
      : (
-# 17 "parse.mly"
+# 16 "parse.mly"
       (Ast.cmd)
-# 616 "parse.ml"
+# 615 "parse.ml"
     ))
 
 let _menhir_action_30 =
   fun b b1 ->
     (
-# 81 "parse.mly"
+# 80 "parse.mly"
                                                                     ( Loop (b, b1) )
-# 624 "parse.ml"
+# 623 "parse.ml"
      : (
-# 17 "parse.mly"
+# 16 "parse.mly"
       (Ast.cmd)
-# 628 "parse.ml"
+# 627 "parse.ml"
     ))
 
 let _menhir_action_31 =
   fun cs ->
     (
-# 35 "parse.mly"
+# 34 "parse.mly"
                                                                     ( cs )
-# 636 "parse.ml"
+# 635 "parse.ml"
      : (
-# 16 "parse.mly"
+# 15 "parse.mly"
       (Ast.cmd list)
-# 640 "parse.ml"
+# 639 "parse.ml"
     ))
 
 let _menhir_print_token : token -> string =

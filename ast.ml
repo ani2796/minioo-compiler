@@ -1,5 +1,3 @@
-open Type;;
-
 type cmd = 
 | Decl of expr
 | Asmt of expr * expr
@@ -44,7 +42,8 @@ let rec str_of_expr s = match s with
 | Field f -> f
 | LocExpr (e1, e2) ->  (str_of_expr(e1) ^ "." ^ str_of_expr(e2))
 | Int i -> string_of_int(i)
-| ArithExpr (arith, e1, e2) ->(str_of_expr(e1) ^ "-" ^ str_of_expr(e2))
+| ArithExpr (arith, e1, e2) -> (str_of_expr(e1) ^ "-" ^ str_of_expr(e2))
+| En_Proc (a, en_cs) -> str_of_expr(a)
 ;;
 
 let str_of_bool b = match b with

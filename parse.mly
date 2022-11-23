@@ -1,6 +1,5 @@
 %{
     (* Preamble *)
-    open Type;;
     open Ast;;
 %}
 

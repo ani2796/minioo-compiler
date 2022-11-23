@@ -1,11 +1,13 @@
 (*let ast = *)
 open Ast;;
 open List;;
+open Semantic_domain;;
 
 exception NotDeclared of string;;
 exception Redeclared of string;;
 exception NotIdentifier;;
 exception Unexpected;;
+exception CannotEvaluate of string;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
@@ -82,12 +84,20 @@ let rec scope_expr e decls = match e with
 | Null -> e
 | _ -> raise Unexpected
 
-and scope_arith_expr (op, e1, e2) decls = ArithExpr(
+and scope_arith_expr (op, e1, e2) decls = ArithExpr (
   op,
-  ((scope_expr e1 decls)),
-  ((scope_expr e2 decls))
+  (scope_expr e1 decls),
+  (scope_expr e2 decls)
 )
 
+and scope_bool_expr b decls = match b with
+| True -> b
+| False -> b
+| BoolExpr (op, e1, e2) -> BoolExpr (
+    op,
+    (scope_expr e1 decls),
+    (scope_expr e2 decls)
+  )
 
 and scope_cmd cmd decls = match cmd with
 (* add a new association *)
@@ -109,9 +119,9 @@ and scope_cmd cmd decls = match cmd with
 (* recursively check ast of block, which inherits decls *)
 | Atom cs -> En_Atom (scope_ast cs decls)
 (* recursively check ast of blocks, both inherit decls *)
-| IfElse (b, cs1, cs2) -> En_IfElse (b, (scope_ast cs1 decls), (scope_ast cs2 decls))
+| IfElse (b, cs1, cs2) -> En_IfElse ((scope_bool_expr b decls), (scope_ast cs1 decls), (scope_ast cs2 decls))
 (* recursively check ast of block, which inherits decls *)
-| Loop (b, cs) -> En_Loop (b, (scope_ast cs decls))
+| Loop (b, cs) -> En_Loop ((scope_bool_expr b decls), (scope_ast cs decls))
 
 and scope_ast ast decls = match ast with
 | [] -> []
@@ -147,5 +157,38 @@ let rec print_en_ast ast = match ast with
 print_en_ast enhanced_ast;;
  
 
-
 (* Small step operational semantics *)
+
+(* Initialize program stack, heap, program state *)
+let stack = Stack []
+let heap = Heap []
+let program_state = (stack, heap)
+
+(* Evaluate expressions as per language spec *)
+let rec eval expr state = match expr with
+| Field f -> Field_Value f
+| Int i -> Int_Value i
+| ArithExpr (op, e1, e2) -> 
+  (let v1 = (eval e1 state) and v2 = (eval e2 state) in (
+    match (v1, v2) with 
+    | (Error_Value, _) -> Error_Value
+    | (_, Error_Value) -> Error_Value
+    | (Int_Value v1, Int_Value v2) -> Int_Value (v1 - v2)
+    | _ -> raise (CannotEvaluate (str_of_expr expr))
+  ))
+| Null -> (Location_Value Null_Location)
+| Id id -> (* Check stack for heap location, get int value or location *) Error_Value
+| LocExpr (obj, field) -> (* Check stack for obj and field, get obj.field from heap *) Error_Value
+| En_Proc (arg, en_cs) -> (* Form closure *) Error_Value
+| _ -> raise (CannotEvaluate (str_of_expr expr))
+;;
+
+(* Evaluate booleans as per language spec *)
+let eval_bool bool_expr state = match bool_expr with
+| True -> Bool_Value true
+| False -> Bool_Value false
+| BoolExpr (op, e1, e2) -> 
+  (let v1 = (eval e1 state) and v2 = (eval e2 state) in
+    (*  *)
+    Bool_Error_Value
+  )
