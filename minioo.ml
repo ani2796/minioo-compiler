@@ -8,6 +8,7 @@ exception Redeclared of string;;
 exception NotIdentifier;;
 exception Unexpected;;
 exception CannotEvaluate of string;;
+exception NullValue;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
@@ -165,11 +166,11 @@ let heap = Heap []
 let program_state = (stack, heap)
 
 (* Evaluate expressions as per language spec *)
-let rec eval expr state = match expr with
+let rec eval_expr expr state decls = match expr with
 | Field f -> Field_Value f
 | Int i -> Int_Value i
 | ArithExpr (op, e1, e2) -> 
-  (let v1 = (eval e1 state) and v2 = (eval e2 state) in (
+  (let v1 = (eval_expr e1 state decls) and v2 = (eval_expr e2 state decls) in (
     match (v1, v2) with 
     | (Error_Value, _) -> Error_Value
     | (_, Error_Value) -> Error_Value
@@ -177,18 +178,48 @@ let rec eval expr state = match expr with
     | _ -> raise (CannotEvaluate (str_of_expr expr))
   ))
 | Null -> (Location_Value Null_Location)
-| Id id -> (* Check stack for heap location, get int value or location *) Error_Value
+| Id id -> (* Check stack for heap location, get int value or location (null or object) *) Error_Value
 | LocExpr (obj, field) -> (* Check stack for obj and field, get obj.field from heap *) Error_Value
 | En_Proc (arg, en_cs) -> (* Form closure *) Error_Value
 | _ -> raise (CannotEvaluate (str_of_expr expr))
 ;;
 
+let bool_op_int op (i1:int) (i2:int) = match op with
+| "<=" -> (i1 <= i2)
+| "<" -> (i1 < i2)
+| ">=" -> (i1 >= i2)
+| ">" -> (i1 > i2)
+| "==" -> (i1 = i2)
+| _ -> raise (CannotEvaluate op)
+
+let bool_op_closure op (c1: closures_sd) (c2: closures_sd) = false
+;;
+
+let rec bool_op_value op (v1: value_sd) (v2: value_sd) = match (v1, v2) with
+| (Int_Value v1, Int_Value v2) -> (bool_op_int op v1 v2)
+| (Field_Value f1, Field_Value f2) -> raise (CannotEvaluate (f1 ^ op ^ f2 ))
+| (Location_Value l1, Location_Value l2) ->  (bool_op_location op l1 l2)
+| (Closure_Value c1, Closure_Value c2) -> (bool_op_closure op c1 c2)
+| _ -> raise (CannotEvaluate (op ^ " for these operands"))
+
+and bool_op_location op (l1: location_sd) (l2: location_sd) = match (op, l1, l2) with
+| (_, Null_Location, _) -> raise NullValue
+| (_, _, Null_Location) -> raise NullValue
+| ("==", Object_Location l1, Object_Location l2) -> (match (l1, l2) with 
+  | (Object_Value v1, Object_Value v2) -> false
+  | (Value v1, Value v2) ->  (bool_op_value op v1 v2)
+  | _ -> raise (CannotEvaluate (op ^ " for these operands"))
+  )
+| _ -> raise (CannotEvaluate (op ^ " for these operands"))
+;;
+
+
 (* Evaluate booleans as per language spec *)
-let eval_bool bool_expr state = match bool_expr with
+let eval_bool bool_expr state decls = match bool_expr with
 | True -> Bool_Value true
 | False -> Bool_Value false
 | BoolExpr (op, e1, e2) -> 
-  (let v1 = (eval e1 state) and v2 = (eval e2 state) in
-    (*  *)
-    Bool_Error_Value
+  (let v1 = (eval_expr e1 state decls) and v2 = (eval_expr e2 state decls) in 
+  Bool_Value (bool_op_value op v1 v2)
   )
+;;

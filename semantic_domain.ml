@@ -24,32 +24,33 @@ type bool_sd =
 | Bool_Value of bool
 | Bool_Error_Value
 
-(* Objects are records *)
-type object_sd = 
-| Int_Variable of int
-| Object_Variable of string
-
 (* Locations can be objects or null *)
-type location_sd = 
+and location_sd = 
 | Object_Location of object_sd
 | Null_Location
 
-type closures_sd = string * (Ast.en_cmd list) * stack_sd
+and closures_sd = string * (Ast.en_cmd list) * stack_sd
+
 and stack_frame_sd = 
-| Mapping_Frame of (string * object_sd) (* Maybe the type of "Var" is not string *)
+| Mapping_Frame of (string * (object_sd ref)) (* Maybe the type of "Var" is not string *)
 | Closure_Frame of closures_sd
+
 and stack_sd = 
 | Stack of stack_frame_sd list
 
-type value_sd = 
+and value_sd = 
 | Field_Value of string
 | Int_Value of int
 | Location_Value of location_sd
 | Closure_Value of closures_sd
 | Error_Value
 
+and object_sd = 
+| Value of value_sd
+| Object_Value of ((string * value_sd) list)
+
 type heap_sd = 
-| Heap of (string * ((string * object_sd) list)) list
+| Heap of ((string * object_sd) list)
 
 type program_state_sd = 
 | Program_State of (stack_sd * heap_sd)
