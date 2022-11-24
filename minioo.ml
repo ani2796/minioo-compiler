@@ -1,7 +1,5 @@
-(*let ast = *)
 open Ast;;
 open List;;
-open Semantic_domain;;
 
 exception NotDeclared of string;;
 exception Redeclared of string;;
@@ -14,7 +12,6 @@ let ast =
   let lexbuf = Lexing.from_channel stdin in
     Parse.program Lex.token lexbuf
 ;;
-
 
 (* Pretty-printing the AST *)
 let rec pr_ind count = match count with
@@ -161,9 +158,9 @@ print_en_ast enhanced_ast;;
 (* Small step operational semantics *)
 
 (* Initialize program stack, heap, program state *)
-let stack = Stack []
-let heap = Heap []
-let program_state = (stack, heap)
+let stack = Stack [];;
+let heap = Heap [];;
+let program_state = (stack, heap);;
 
 (* Evaluate expressions as per language spec *)
 let rec eval_expr expr state decls = match expr with
@@ -191,6 +188,7 @@ let bool_op_int op (i1:int) (i2:int) = match op with
 | ">" -> (i1 > i2)
 | "==" -> (i1 = i2)
 | _ -> raise (CannotEvaluate op)
+;;
 
 let bool_op_closure op (c1: closures_sd) (c2: closures_sd) = false
 ;;
@@ -206,7 +204,7 @@ and bool_op_location op (l1: location_sd) (l2: location_sd) = match (op, l1, l2)
 | (_, Null_Location, _) -> raise NullValue
 | (_, _, Null_Location) -> raise NullValue
 | ("==", Object_Location l1, Object_Location l2) -> (match (l1, l2) with 
-  | (Object_Value v1, Object_Value v2) -> false
+  | (Object_Value v1, Object_Value v2) -> (* Compare the two references *) false
   | (Value v1, Value v2) ->  (bool_op_value op v1 v2)
   | _ -> raise (CannotEvaluate (op ^ " for these operands"))
   )
