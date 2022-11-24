@@ -27,17 +27,15 @@ and  bln =
 | BoolExpr of string * expr * expr
 
 and en_cmd = 
-| En_Cmd of cmd * ((string * int) list)
+| En_Cmd of cmd * ((string * stack_frame_sd) list)
 | En_Block of en_cmd list
 | En_Parallel of (en_cmd list) * (en_cmd list)
 | En_IfElse of bln * (en_cmd list) * (en_cmd list)
 | En_Atom of (en_cmd list)
 | En_Loop of bln * (en_cmd list)
-;;
 
-
-
-type stack_frame_sd = 
+and stack_frame_sd = 
+| Null_Frame
 | Mapping_Frame of (string * object_sd)
 | Closure_Frame of closures_sd
 
@@ -53,7 +51,7 @@ and value_sd =
 | Closure_Value of closures_sd
 | Error_Value
 
-and object_sd = 
+and object_sd =
 | Value of value_sd
 | Object_Value of ((string * value_sd) list ref)
 

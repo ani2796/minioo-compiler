@@ -13,6 +13,7 @@ let ast =
     Parse.program Lex.token lexbuf
 ;;
 
+
 (* Pretty-printing the AST *)
 let rec pr_ind count = match count with
 | 0 -> (print_string "")
@@ -73,7 +74,7 @@ let scope_id id decls =
 
 (* Checks *)
 let rec scope_expr e decls = match e with
-| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((id, 0)::decls)))
+| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((id, Null_Frame)::decls)))
 | Id id -> if(scope_id id decls) then (Id id) else raise (NotDeclared id)
 | LocExpr (obj, field) -> (scope_expr obj decls)
 | ArithExpr (op, e1, e2) -> (scope_arith_expr (op, e1, e2) decls)
@@ -99,7 +100,7 @@ and scope_bool_expr b decls = match b with
 
 and scope_cmd cmd decls = match cmd with
 (* add a new association *)
-| Decl decl -> En_Cmd (Decl decl, (get_decl_id(decl), 0)::decls)
+| Decl decl -> En_Cmd (Decl decl, (get_decl_id(decl), Null_Frame)::decls)
 (* check sub-expression scope *)
 | Asmt (var, e) -> En_Cmd ((Asmt ((scope_expr var decls), (scope_expr e decls))), decls)
 (* check sub-expression scope *)
@@ -131,7 +132,6 @@ and scope_ast ast decls = match ast with
 
 let enhanced_ast = scope_ast ast []
 ;;
-
 
 let rec print_en_cmd c ind = match c with
 | En_Cmd (cmd, decls) -> (print_cmd cmd ind)
@@ -190,6 +190,10 @@ let bool_op_int op (i1:int) (i2:int) = match op with
 | _ -> raise (CannotEvaluate op)
 ;;
 
+(* Evaluate booleans as per language spec *)
+(* For now, comparing closures and objects returns false by default *)
+(* Need to implement object reference comparison *)
+
 let bool_op_closure op (c1: closures_sd) (c2: closures_sd) = false
 ;;
 
@@ -212,7 +216,6 @@ and bool_op_location op (l1: location_sd) (l2: location_sd) = match (op, l1, l2)
 ;;
 
 
-(* Evaluate booleans as per language spec *)
 let eval_bool bool_expr state decls = match bool_expr with
 | True -> Bool_Value true
 | False -> Bool_Value false
