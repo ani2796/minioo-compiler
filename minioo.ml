@@ -160,8 +160,6 @@ print_en_ast enhanced_ast;;
 
 (* Small step operational semantics *)
 
-
-
 (* Evaluate expressions as per language spec *)
 let rec eval_expr expr state decls = match expr with
 | Field f -> Field_Value f
@@ -224,6 +222,20 @@ let eval_bool bool_expr state decls = match bool_expr with
   Bool_Value (bool_op_value op v1 v2)
   )
 ;;
+
+
+let eval_c c (stack, heap) decls = match c with
+| Decl decl -> ()
+| Asmt (id, e) -> ()
+| ProcCall (id, arg) -> ()
+| Block  (cs) -> ()
+| FieldAsmt (obj, field, e) -> ()
+| Malloc e -> ()
+| Skip -> ()
+| Parallel (cs1, cs2) -> ()
+| Atom  cs -> ()
+| IfElse  (b, cs1, cs2) -> ()
+| Loop  (b, cs) -> ()
 
 
 (* Evaluate, add to stack/heap and return new state of stack, heap, symbol table *)
