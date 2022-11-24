@@ -133,14 +133,17 @@ and scope_ast ast decls = match ast with
 let enhanced_ast = scope_ast ast []
 ;;
 
+let rec print_decls decls ind = match decls with
+| [] -> (print_string " end\n")
+| (id, sf)::rem_decls -> (pr_ind_str ind ("decl: " ^ id)); (print_decls rem_decls ind)
+
 let rec print_en_cmd c ind = match c with
-| En_Cmd (cmd, decls) -> (print_cmd cmd ind)
-| En_Block(cs) -> (*(print_block (b, decls) (ind+1));*)(print_en_block cs (ind+1))
-| En_Parallel(c1s, c2s) -> (*(print_block (c1s, decls) (ind+1)); (pr_ind_str ind ("|||\n")); (print_block (c2s, decls) (ind+1));*)
-  (print_en_block c1s (ind+1)); (pr_ind_str ind ("|||\n")); (print_en_block c2s (ind+1));
-| En_Atom(cs) -> (*(pr_ind_str ind ("Atom: ")); (print_block (a, decls) (ind+1));*)()
-| En_IfElse(b, cs1, cs2) -> (*(pr_ind_str ind ("If " ^ str_of_bool(b) ^ "\n")); (print_block (b1, decls) (ind+1)); (pr_ind_str ind ("Else \n")); (print_block (b2, decls) (ind+1));*)()
-| En_Loop(b, cs) -> (*(pr_ind_str ind ("Loop " ^ str_of_bool(b))); (print_block (b1, decls) (ind+1));*)()
+| En_Cmd (cmd, decls) -> (print_cmd cmd ind); (print_decls decls ind)
+| En_Block(cs) -> (print_en_block cs (ind+1))
+| En_Parallel(c1s, c2s) -> (print_en_block c1s (ind+1)); (pr_ind_str ind ("|||\n")); (print_en_block c2s (ind+1));
+| En_Atom(cs) -> (pr_ind_str (ind) ("atom:\n")); (print_en_block cs (ind+1));
+| En_IfElse(b, cs1, cs2) -> (pr_ind_str (ind) ("if:\n")); (print_en_block cs1 (ind+1));(pr_ind_str (ind) ("else:\n"));  (print_en_block cs2 (ind+1));
+| En_Loop(b, cs) ->(pr_ind_str (ind) ("loop:\n")); (print_en_block cs (ind+1));
 
 and print_en_block cs indent = match cs with
 | [] -> ()
@@ -157,10 +160,7 @@ print_en_ast enhanced_ast;;
 
 (* Small step operational semantics *)
 
-(* Initialize program stack, heap, program state *)
-let stack = Stack [];;
-let heap = Heap [];;
-let program_state = (stack, heap);;
+
 
 (* Evaluate expressions as per language spec *)
 let rec eval_expr expr state decls = match expr with
@@ -224,3 +224,32 @@ let eval_bool bool_expr state decls = match bool_expr with
   Bool_Value (bool_op_value op v1 v2)
   )
 ;;
+
+
+(* Evaluate, add to stack/heap and return new state of stack, heap, symbol table *)
+let eval_en_c en_c (stack, heap) = match en_c with
+| En_Cmd (c, decls) -> (stack, heap, en_c)
+| En_Block (cs) -> (stack, heap, en_c) 
+| En_Parallel (cs1, cs2) -> (stack, heap, en_c) 
+| En_IfElse (b, cs1, cs2) -> (stack, heap, en_c)
+| En_Atom (cs) -> (stack, heap, en_c)
+| En_Loop (b, cs) -> (stack, heap, en_c)
+;;
+
+(* Evaluate program commands after static semantic analysis *)
+(* Evaluate expressions,  *)
+let rec eval_prog en_ast (stack, heap) = match en_ast with
+| [] -> []
+| en_c::rem_c -> ( let (stack, heap, new_en_c) = (eval_en_c en_c (stack, heap)) in 
+    new_en_c::(eval_prog rem_c (stack, heap))
+  )
+;;
+
+(* Initialize program stack, heap, program state *)
+let stack = Stack [];;
+let heap = Heap [];;
+let program_state = (stack, heap);;
+
+
+(eval_prog enhanced_ast (stack, heap));;
+
