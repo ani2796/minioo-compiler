@@ -2,12 +2,8 @@ open Ast;;
 open List;;
 
 exception NotDeclared of string;;
-exception Redeclared of string;;
 exception NotIdentifier;;
 exception Unexpected;;
-exception CannotEvaluate of string;;
-exception NullValue;;
-exception NotFoundError;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
@@ -16,6 +12,8 @@ let ast =
 
 
 (* Pretty-printing the AST *)
+
+
 let rec pr_ind count = match count with
 | 0 -> (print_string "")
 | num -> (print_string " "); (pr_ind (num-1))
@@ -49,6 +47,7 @@ let rec print_ast ast = match ast with
 | c1::cs -> (print_cmd c1 0); (print_ast cs)
 ;;
 
+
 (*print_ast ast;;*)
 
 
@@ -75,7 +74,7 @@ let scope_id id decls =
 
 (* Checks *)
 let rec scope_expr e decls = match e with
-| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((id, ref Null_Frame)::decls)))
+| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((id, ref Init_Frame)::decls)))
 | Id id -> if(scope_id id decls) then (Id id) else raise (NotDeclared id)
 | LocExpr (obj, field) -> (scope_expr obj decls)
 | ArithExpr (op, e1, e2) -> (scope_arith_expr (op, e1, e2) decls)
@@ -101,7 +100,7 @@ and scope_bool_expr b decls = match b with
 
 and scope_cmd cmd decls = match cmd with
 (* add a new association *)
-| Decl decl -> En_Cmd (Decl decl, (get_decl_id(decl), (ref Null_Frame))::decls)
+| Decl decl -> En_Cmd (Decl decl, (get_decl_id(decl), (ref Init_Frame))::decls)
 (* check sub-expression scope *)
 | Asmt (var, e) -> En_Cmd ((Asmt ((scope_expr var decls), (scope_expr e decls))), decls)
 (* check sub-expression scope *)

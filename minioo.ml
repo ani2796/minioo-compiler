@@ -7,4 +7,3 @@ let enhanced_ast = scope_ast ast []
 
 print_en_ast enhanced_ast;;
 
-(* Small step operational semantics *)
