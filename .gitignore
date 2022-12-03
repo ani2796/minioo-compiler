@@ -1,5 +1,8 @@
 # Executables
 *.cmo
 *.cmi
+
+# temp files
 parse.conflicts
 temp.ml
+test.out

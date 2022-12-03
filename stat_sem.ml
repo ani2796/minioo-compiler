@@ -3,7 +3,7 @@ open List;;
 
 exception NotDeclared of string;;
 exception NotIdentifier;;
-exception Unexpected;;
+exception Unexpected of string;;
 
 let ast = 
   let lexbuf = Lexing.from_channel stdin in
@@ -25,15 +25,15 @@ let rec pr_ind_str indent str =
 ;; 
 
 let rec print_cmd c ind = match c with
-| Decl id -> (pr_ind_str ind ("Decl of " ^ Ast.str_of_expr(id) ^ "\n"));
-| Asmt (id, expr) -> (pr_ind_str ind ("Asmt " ^ " to " ^ Ast.str_of_expr(id) ^ "\n"));
-| ProcCall (e1, e2) -> (pr_ind_str ind ("Proc call " ^ Ast.str_of_expr(e1) ^ "(" ^ Ast.str_of_expr(e2) ^ ")\n"));
+| Decl id -> (pr_ind_str ind ("Decl of " ^ Ast.str_of_expr(id) ^ " "));
+| Asmt (id, expr) -> (pr_ind_str ind ("Asmt " ^ " to " ^ Ast.str_of_expr(id) ^ " "));
+| ProcCall (e1, e2) -> (pr_ind_str ind ("Proc call " ^ Ast.str_of_expr(e1) ^ "(" ^ Ast.str_of_expr(e2) ^ ") "));
 | Block b -> (print_block b (ind+1));
 | FieldAsmt (e1, e2, e3) -> (pr_ind_str ind ("Field assigment: " ^ Ast.str_of_expr(e1) ^ "." ^ Ast.str_of_expr(e2) ^ " = " ^ Ast.str_of_expr(e3)));
 | Malloc e -> (pr_ind_str ind ("Malloc " ^ Ast.str_of_expr(e)));
-| Skip -> (pr_ind_str ind ("Skip"));
+| Skip -> (pr_ind_str ind ("Skip\n"));
 | Parallel (c1s, c2s) -> (print_block c1s (ind+1)); (pr_ind_str ind ("|||\n")); (print_block c2s (ind+1));
-| Atom a -> (pr_ind_str ind ("Atom: ")); (print_block a (ind+1));
+| Atom a -> (pr_ind_str ind ("Atom: \n")); (print_block a (ind+1));
 | IfElse (b, b1, b2) -> (pr_ind_str ind ("If " ^ str_of_bool(b) ^ "\n")); (print_block b1 (ind+1)); (pr_ind_str ind ("Else \n")); (print_block b2 (ind+1));
 | Loop (b, b1) -> (pr_ind_str ind ("Loop " ^ str_of_bool(b))); (print_block b1 (ind+1));
 
@@ -63,7 +63,7 @@ let rec print_ast ast = match ast with
 (* Takes decl expr, returns var *)
 let get_decl_id decl = match decl with
 | Id id -> id
-| _ -> raise Unexpected
+| _ -> raise (Unexpected "get_decl_id")
 ;;
 
 (* Checks if id string exists in decl list *)
@@ -81,7 +81,7 @@ let rec scope_expr e decls = match e with
 | Int i -> e
 | Field f -> e
 | Null -> e
-| _ -> raise Unexpected
+| _ -> raise (Unexpected "scope_expr")
 
 and scope_arith_expr (op, e1, e2) decls = ArithExpr (
   op,
@@ -126,16 +126,16 @@ and scope_ast ast decls = match ast with
 | [] -> []
 | c1::cs -> 
   match (scope_cmd c1 decls) with
-  | En_Cmd (c2, decls2) -> (En_Cmd (c2, decls))::(scope_ast cs decls2)
+  | En_Cmd (c2, decls2) -> (En_Cmd (c2, decls2))::(scope_ast cs decls2)
   | _ -> (scope_cmd c1 decls)::(scope_ast cs decls)
 ;;
 
 let rec print_decls decls ind = match decls with
-| [] -> (print_string " end\n")
-| (id, sf)::rem_decls -> (pr_ind_str ind ("decl: " ^ id)); (print_decls rem_decls ind)
+| [] -> ()
+| (id, sf)::rem_decls -> (print_string ("decl: " ^ id ^ " ")); (print_decls rem_decls ind)
 
 let rec print_en_cmd c ind = match c with
-| En_Cmd (cmd, decls) -> (print_cmd cmd ind); (print_decls decls ind)
+| En_Cmd (cmd, decls) -> ((print_cmd cmd ind); (print_string " [ "); (print_decls decls ind)); (print_string " ]\n")
 | En_Block(cs) -> (print_en_block cs (ind+1))
 | En_Parallel(c1s, c2s) -> (print_en_block c1s (ind+1)); (pr_ind_str ind ("|||\n")); (print_en_block c2s (ind+1));
 | En_Atom(cs) -> (pr_ind_str (ind) ("atom:\n")); (print_en_block cs (ind+1));
