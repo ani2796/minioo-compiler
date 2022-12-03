@@ -27,15 +27,21 @@ rule token = parse
 |   "malloc"                    { MALLOC }
 |   "skip"                      { SKIP }
 |   "atom"                      { ATOM }
+
 |   '\n'                        { EOL }
+
 |   '='                         { ASSIGN }
-|   "=="                        { EQUALS }
-|   '>'                         { GREATER }
+
+|   ("=="|">"|"<"|">="|"<=") as op { COMP_OP(op) }
+
+|   '*'|'/' as op               { TIMES_BY(op) }
+|   '-'|'+' as op               { PLUS_MINUS(op) }
+
+
 |   ';'+                        { SEMICOLON }
 |   ':'                         { COLON }
 |   '.'                         { DOT }
 |   "|||"                       { PARALLEL }
-|   '-'                         { MINUS }
 |   '{'                         { LEFT_CURLY }
 |   '}'                         { RIGHT_CURLY }
 |   '('                         { LEFT_PAREN }
