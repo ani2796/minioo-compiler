@@ -26,27 +26,37 @@ let incr_object_counter = (
 )
 ;;
 
+
+
 (* Every time a new object is constructed, it has a new loc that doesn't exist *)
 
-let get_object (counter: int) = (("obj" ^ (string_of_int counter)), {
+let get_new_object (counter: int) = {
+  obj_id = "obj" ^ (string_of_int counter);
   is_object = false;
   fields = [("val", (Location_Value Null_Loc))];
-})
+}
 ;;
-
 
 (* Getting stack frame for new variable declaration *)
 
 let new_var_stack_frame var_id heap = 
   let counter = incr_object_counter in 
-  let (name, fields) = (get_object counter) in 
-  let new_heap = ((name, fields)::heap) in
-    ((Object_Ref (var_id, name)), new_heap)
+  let (new_obj) = (get_new_object counter) in 
+  let new_heap = (new_obj::heap) in
+    ((Object_Ref (var_id, new_obj.obj_id)), new_heap)
 
 ;;
 
+(* Find var field of object *)
+let get_object_field (obj: object_sd) (field: string) = (List.assoc field obj.fields)
+
 (* Find object in heap according to loc in stack *)
-let rec get_object_from_heap (loc: string) (heap: heap_sd) = (List.assoc loc heap)
+let rec get_object_from_heap (loc: string) (heap: heap_sd) = match heap with
+| [] -> raise Unexpected
+| obj::rem -> (
+    if(obj.obj_id = loc) then obj
+    else (get_object_from_heap loc rem)
+)
 ;;
 
 (* Return second value in stack tuple, i.e. the loc *)
@@ -96,8 +106,8 @@ and print_object (obj: object_sd) = (
 
 let rec print_heap (heap: heap_sd) = match heap with
 | [] -> (print_string "\nHeap end")
-| (obj_id, obj)::rem -> (
-  (print_string (obj_id ^ "\n"));
+| obj::rem -> (
+  (print_string (obj.obj_id ^ "\n"));
   (print_object obj);
   (print_string "\n");
   (print_heap rem);
@@ -114,7 +124,8 @@ let rec update_decls (decls: (string * (stack_frame_sd ref)) list) (var: string)
 (*
   For a new variable, create a new initialized object on the heap
   Push declaration onto stack, and update decls (symbol table) to reflect stack changes
-*)
+  NOTE: Ignore OCaml warning since the only kind of expressions that can appear with `var` are declarations
+ *)
 
 let eval_decl (Decl (Id id)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd ref)) list) = 
   let var_id = id in
@@ -131,3 +142,58 @@ let heap = [];;
 let (new_stack, new_heap, new_decls) = (eval_decl (Decl (Id "x")) stack heap [("x", (ref Init_Frame))]);;
 (print_stack new_stack);;
 (print_heap new_heap);;
+
+(* Evaluating expressions *)
+
+
+(* Arithmetic expressions *)
+let rec eval_arith_expr ( ArithExpr (arith, e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd ref)) list) = 
+  let v1 = (eval_expr e1 stack heap decls) in
+  let v2 = (eval_expr e2 stack heap decls) in
+  match (v1, v2) with
+  | (Int_Value i1, Int_Value i2) -> ( match arith with 
+    | '+' -> Int_Value (i1 + i2)
+    | '-' -> Int_Value (i1 - i2)
+    | '*' -> Int_Value (i1 * i2)
+    | '/' -> Int_Value (i1 / i2)
+    | _ -> raise Unexpected )
+  | _ -> Error_Value
+
+(* 
+Evaluate procedure declaration to return closure (procedure with stack) 
+NOTE: Ignore OCaml warning since only identifiers are possible as the first expr of En_Proc (procedures with symbol tables/decls)
+*)
+and eval_en_proc (En_Proc ((Id id), en_cs)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd ref)) list) =
+(Closure_Value (stack, id, en_cs))
+
+
+and eval_id (id: string) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd ref)) list) =
+  let frame = (List.assoc id decls) in
+  let (_, o_id) = (match !frame with 
+  | (Object_Ref (stack_var, stack_obj)) -> (stack_var, stack_obj)
+  | _ -> raise Unexpected
+  ) in
+  (o_id, (get_heap_loc_from_frame !frame heap))
+
+
+and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd ref)) list) = 
+  match e with
+  | Field f -> (Field_Value f)
+  | Int i -> (Int_Value i)
+  | ArithExpr (arith, e1, e2) -> (eval_arith_expr e stack heap decls)
+  | Null -> (Location_Value Null_Loc)
+  | Proc _ -> raise Unexpected
+  | En_Proc ((Id id), en_cs) -> (eval_en_proc e stack heap decls)
+  | Id id -> let (obj_id, obj) = (eval_id id stack heap decls) in 
+      if(obj.is_object) then (Location_Value (Object_Loc obj)) (* If object, return a location value *)
+      else (get_object_field obj "val") (* If not, return the "val" field *)
+  | LocExpr (e1, e2) -> (
+      let obj = (eval_expr e1 stack heap decls) in (* Evaluate first expression to get object *)
+      let field = (eval_expr e2 stack heap decls) in (* Evaluate second expression to get  *)
+      match (obj, field) with
+      | (Location_Value (Object_Loc o), Field_Value f) -> (get_object_field o f)
+      | _ -> Error_Value )    
+  | _ -> raise Unexpected
+  ;;
+
+  

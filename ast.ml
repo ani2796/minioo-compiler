@@ -59,11 +59,12 @@ Possible to functionally update fields of records.
 *)
 
 and object_sd = {
+  obj_id: string;
   is_object: bool;
   mutable fields: ((string * value_sd) list);
 }
 
-and heap_sd = (string * object_sd) list
+and heap_sd = object_sd list
 
 and location_sd = 
 | Object_Loc of object_sd
@@ -76,7 +77,7 @@ and value_sd =
 | Int_Value of int
 | Field_Value of string
 | Location_Value of location_sd
-| Closure_Value of (string * stack_sd * (en_cmd list))
+| Closure_Value of (stack_sd * string * (en_cmd list))
 | Error_Value
 ;;
 
