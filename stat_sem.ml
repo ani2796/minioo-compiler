@@ -67,14 +67,16 @@ let get_decl_id decl = match decl with
 ;;
 
 (* Checks if id string exists in decl list *)
-let scope_id id decls = 
-  if(List.mem_assoc id decls) then true
-  else false
+let rec scope_id id decls = match decls with
+| [] -> false
+| el::rem -> (match !el with
+  | (decls_id, frame) -> if(decls_id = id) then true else (scope_id id rem)
+  )
 ;;
 
 (* Checks *)
 let rec scope_expr e decls = match e with
-| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((id, Init_Frame)::decls)))
+| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((ref (id, Init_Frame))::decls)))
 | Id id -> if(scope_id id decls) then (Id id) else raise (NotDeclared id)
 | LocExpr (obj, field) -> (scope_expr obj decls)
 | ArithExpr (op, e1, e2) -> (scope_arith_expr (op, e1, e2) decls)
@@ -100,7 +102,7 @@ and scope_bool_expr b decls = match b with
 
 and scope_cmd cmd decls = match cmd with
 (* add a new association *)
-| Decl decl -> En_Cmd (Decl decl, (get_decl_id(decl), (Init_Frame))::decls)
+| Decl decl -> En_Cmd (Decl decl, (ref (get_decl_id(decl), (Init_Frame)))::decls)
 (* check sub-expression scope *)
 | Asmt (var, e) -> En_Cmd ((Asmt ((scope_expr var decls), (scope_expr e decls))), decls)
 (* check sub-expression scope *)
@@ -132,7 +134,8 @@ and scope_ast ast decls = match ast with
 
 let rec print_decls decls ind = match decls with
 | [] -> ()
-| (id, sf)::rem_decls -> (print_string ("decl: " ^ id ^ " ")); (print_decls rem_decls ind)
+| (decl)::rem_decls -> match !decl with
+  (id, frame) -> (print_string ("decl: " ^ id ^ " ")); (print_decls rem_decls ind)
 
 let rec print_en_cmd c ind = match c with
 | En_Cmd (cmd, decls) -> ((print_cmd cmd ind); (print_string " [ "); (print_decls decls ind)); (print_string " ]\n")

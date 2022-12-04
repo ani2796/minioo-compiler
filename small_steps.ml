@@ -175,7 +175,7 @@ match new_cmd with (cmd, decls) -> (print_decls decls)
 
 
 (* Arithmetic expressions *)
-let rec eval_arith_expr ( ArithExpr (arith, e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) = 
+let rec eval_arith_expr ( ArithExpr (arith, e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   let v1 = (eval_expr e1 stack heap decls) in
   let v2 = (eval_expr e2 stack heap decls) in
   match (v1, v2) with
@@ -191,12 +191,19 @@ let rec eval_arith_expr ( ArithExpr (arith, e1, e2)) (stack: stack_sd) (heap: he
 Evaluate procedure declaration to return closure (procedure with stack) 
 NOTE: Ignore OCaml warning since only identifiers are possible as the first expr of En_Proc (procedures with symbol tables/decls)
 *)
-and eval_en_proc (En_Proc ((Id id), en_cs)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) =
+and eval_en_proc (En_Proc ((Id id), en_cs)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) =
 (Closure_Value (stack, id, en_cs))
 
+and get_stack_frame (id: string) (decls: ((string * (stack_frame_sd)) ref) list) = match decls with
+| [] -> raise (Unexpected ("get_stack_frame " ^ id))
+| el::rem -> match !el with
+  | (decls_id, frame) -> (
+    if(decls_id = id) then frame 
+    else (get_stack_frame id rem))
+
 (* Evaluating identifiers according to their stack ptr to heap and then heap location *)
-and eval_id (id: string) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) =
-  let frame = (List.assoc id decls) in
+and eval_id (id: string) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) =
+  let frame = (get_stack_frame id decls) in
   let (_, o_id) = (match frame with 
   | (Object_Ref (stack_var, stack_obj)) -> (stack_var, stack_obj)
   | _ -> raise (Unexpected "eval_id")
@@ -207,7 +214,7 @@ and eval_id (id: string) (stack: stack_sd) (heap: heap_sd) (decls: (string * (st
 Evaluating location expressions according to presence of object on stack (definitely there) and    
 presence of field in the object (checked in the function) 
 *)
-and eval_loc_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) = match e with
+and eval_loc_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = match e with
 | (LocExpr (e1, e2)) -> (
   let obj = (eval_expr e1 stack heap decls) in (* Evaluate first expression to get object *)
   let field = (eval_expr e2 stack heap decls) in (* Evaluate second expression to get  *)
@@ -217,7 +224,7 @@ and eval_loc_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: (string * 
 | _ -> raise (Unexpected ("eval_loc_expr " ^ (str_of_expr e)))
 
 (* Evaluate any expression to return value in the semantic domain *)
-and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) = 
+and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   match e with
   | Field f -> (Field_Value f)
   | Int i -> (Int_Value i)
@@ -240,30 +247,30 @@ and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: (string * (sta
   NOTE: Ignore OCaml warning since the only kind of expressions that can appear with `var` are declarations
  *)
 
- let rec update_decls (decls: (string * (stack_frame_sd)) list) (var: string) (new_frame: stack_frame_sd) = 
+ let rec update_decls (decls: ((string * (stack_frame_sd)) ref) list) (var: string) (new_frame: stack_frame_sd) = 
   match decls with
 | [] -> raise (Unexpected ("update_decls " ^ var))
-| (decls_var, old_frame)::rem -> 
-    if(decls_var = var) then ((decls_var, new_frame)::rem)
-    else ((decls_var, old_frame)::(update_decls rem var new_frame))
+| el::rem -> match ! el with (decls_var, old_frame) ->
+    (if(decls_var = var) then (el := (decls_var, new_frame)) 
+    else ((update_decls rem var new_frame)))
 ;;
 
-let eval_decl (Decl (Id id)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) = 
+let eval_decl (Decl (Id id)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   let var_id = id in
   let (frame, new_heap) = (new_var_stack_frame id heap) in 
   let new_stack = (push stack frame) in
-  let new_decls = (update_decls decls var_id frame) in
-    (En_Cmd(Decl (Id id), new_decls), new_stack, new_heap)
+  let _ = (update_decls decls var_id frame) in
+    (En_Cmd(Decl (Id id), decls), new_stack, new_heap)
 ;;
 
 
-let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: (string * (stack_frame_sd)) list) = 
+let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   match (e1, e2) with
   | (Id id, _) -> (let value = (eval_expr e2 stack heap decls) in 
     match value with
     | Error_Value -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
     | _ -> (
-      let frame = (List.assoc id decls) in
+      let frame = (get_stack_frame id decls) in
       let obj = (get_heap_loc_from_frame frame heap) in
       let _ = (set_object_field_on_heap obj.obj_id "val" value heap) in
       (En_Cmd ((Asmt (e1, e2)), decls), value, stack, heap)
