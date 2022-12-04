@@ -27,7 +27,7 @@ and  bln =
 | BoolExpr of string * expr * expr
 
 and en_cmd = 
-| En_Cmd of cmd * ((string * (stack_frame_sd ref)) list)
+| En_Cmd of cmd * ((string * (stack_frame_sd)) list)
 | En_Block of en_cmd list
 | En_Parallel of (en_cmd list) * (en_cmd list)
 | En_IfElse of bln * (en_cmd list) * (en_cmd list)
