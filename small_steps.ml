@@ -216,14 +216,19 @@ presence of field in the object (checked in the function)
 *)
 and eval_loc_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = match e with
 | (LocExpr (e1, e2)) -> (
-  let obj = (eval_expr e1 stack heap decls) in (* Evaluate first expression to get object *)
   let field = (eval_expr e2 stack heap decls) in (* Evaluate second expression to get  *)
+  let obj = (eval_expr e1 stack heap decls) in (* Evaluate first expression to get object *)
+  (* Note that we get the second expression first because the operator is right associative *)
   match (obj, field) with
   | (Location_Value (Object_Loc o), Field_Value f) -> (get_object_field o f)
   | _ -> Error_Value )
 | _ -> raise (Unexpected ("eval_loc_expr " ^ (str_of_expr e)))
 
-(* Evaluate any expression to return value in the semantic domain *)
+(* 
+Evaluate any expression to return value in the semantic domain.
+Note that identifiers are always returned as objects. It is up to
+the discretion of the calling function about what to do with the object value.
+*)
 and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   match e with
   | Field f -> (Field_Value f)
@@ -233,8 +238,8 @@ and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (st
   | Proc _ -> raise (Unexpected ("Proc at eval_expr " ^ (str_of_expr e)))
   | En_Proc ((Id id), en_cs) -> (eval_en_proc e stack heap decls)
   | Id id -> let (obj_id, obj) = (eval_id id stack heap decls) in 
-      if(obj.is_object) then (Location_Value (Object_Loc obj)) (* If object, return a location value *)
-      else (get_object_field obj "val") (* If not, return the "val" field *)
+      if(obj.is_object) then (Location_Value (Object_Loc obj)) (* If the id is just a plain identifier, always return its "val" *)
+      else (get_object_field obj "val")  
   | LocExpr (e1, e2) -> (eval_loc_expr e stack heap decls)
   | _ -> raise (Unexpected ("LocExpr at eval_expr " ^ (str_of_expr e)))
 ;;
@@ -265,8 +270,10 @@ let eval_decl (Decl (Id id)) (stack: stack_sd) (heap: heap_sd) (decls: ((string 
 
 
 let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
+  
   match (e1, e2) with
-  | (Id id, _) -> (let value = (eval_expr e2 stack heap decls) in 
+  | (Id id, _) -> (
+    let value = (eval_expr e2 stack heap decls) in 
     match value with
     | Error_Value -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
     | _ -> (
@@ -274,10 +281,21 @@ let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string
       let obj = (get_heap_loc_from_frame frame heap) in
       let _ = (set_object_field_on_heap obj.obj_id "val" value heap) in
       (En_Cmd ((Asmt (e1, e2)), decls), value, stack, heap)
+    ))
+  | (LocExpr (obj_expr, field_expr), _) -> (
+    let value = (eval_expr e2 stack heap decls) in 
+    let obj_val = (eval_expr obj_expr stack heap decls) in
+    let field_val = (eval_expr field_expr stack heap decls) in
+    match (obj_val, field_val) with
+    (* If we have an object and a field, then we can continue with assignment *)
+    | (Location_Value (Object_Loc o), Field_Value f) -> (
+        let _ = (set_object_field_on_heap o.obj_id f value heap) in
+        (En_Cmd ((Asmt (e1, e2)), decls), value, stack, heap))
+    (* Otherwise, we return error *)
+    | _ -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
     )
-  )
-  | (LocExpr (obj, field), _) -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
-  | _ -> raise (Unexpected ("eval_asmt " ^ str_of_expr(e1) ^ " " ^ str_of_expr(e2)))
+  (* Error value returned in case the first expression is not an identifier or a location expression *)
+  | _ -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
 ;;
 
 let eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) = 
@@ -287,7 +305,7 @@ let eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) =
       (new_cmd, Location_Value Null_Loc, new_stack, new_heap))
     | (Asmt (e1, e2)) -> 
       (eval_asmt c stack heap decls)
-    | _ -> raise (Unexpected ("eval_cmd decl ")) )
+    | _ -> raise (Unexpected ("eval_cmd decl")) )
   | _ -> raise (Unexpected ("eval_cmd decl outer"))
 ;;
 
