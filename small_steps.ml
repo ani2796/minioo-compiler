@@ -407,18 +407,31 @@ let eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) =
 
 let rec get_final_cmd_state (result_cmds: (en_cmd * value_sd * stack_sd * heap_sd) list) = match result_cmds with 
 | [] -> (En_Cmd (Skip, []), (Location_Value Null_Loc), [], [])
-| (el::rem) -> match rem with
+| (el::rem) -> ( match rem with
   | [] -> (match el with (final_cmd, result_val, result_stack, result_heap) -> (final_cmd, result_val, (result_stack: stack_sd), (result_heap: heap_sd)))
-| _ -> (get_final_cmd_state rem)
+  | _ -> (get_final_cmd_state rem) )
 ;;
 
+let line = ref 1;;
+
+let incr_line () = (line := (!line + 1))
+;;
+
+let print_line () = (
+  (print_string ("\nprogram line " ^ string_of_int(!line) ^ ":\n"));
+  (incr_line ())
+)
+;;
 
 let rec eval_ast (ast: en_cmd list) (stack: stack_sd) (heap: heap_sd) = match ast with
-| [] -> []
-| (c::rem) -> ( match c with
+| [] -> let _ = (print_state (stack, stack) (heap, heap)) in []
+| (c::rem) -> ( 
+  
+  match c with
   | En_Cmd _ -> (
     let result_cmd = (eval_cmd c stack heap) in
     let (new_cmd, new_val, new_stack, new_heap) = result_cmd in
+    let _ = (print_line ()) in
     let _ = (print_state (stack, new_stack) (heap, new_heap)) in
     result_cmd::(eval_ast rem new_stack new_heap))
   | En_Block cs -> (
@@ -426,8 +439,9 @@ let rec eval_ast (ast: en_cmd list) (stack: stack_sd) (heap: heap_sd) = match as
     let (final_cmd, result_val, result_stack, result_heap) = (get_final_cmd_state result_cmds) in
     (* Note that stack is the old stack before the block is called - equivalent to block(C) *)
     (* At the top level, we can therefore see the state of the stack *)
-    let _ = (print_state (stack, result_stack) (heap, result_heap)) in
-    (eval_ast rem stack result_heap)
+    let result_rem = (eval_ast rem stack result_heap) in
+    (* Print final result only after evaluating remaining commands *)
+    (final_cmd, result_val, result_stack, result_heap)::result_rem
     )
   | _ -> []
   )
