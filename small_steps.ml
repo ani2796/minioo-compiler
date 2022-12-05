@@ -9,8 +9,6 @@ open List;;
 (* Objects are created per variable declaration *)
 (* Malloc simply turns the is_object field on *)
 
-
-
 let object_counter = ref 0;;
 
 let push (stack: stack_sd) (frame: stack_frame_sd) = ((frame::stack): stack_sd)
@@ -31,18 +29,25 @@ let incr_object_counter () = (
 
 (* Every time a new object is constructed, it has a new loc that doesn't exist *)
 
-let get_new_object (counter: int) = {
+let get_new_object (counter: int) (is_object_val: bool) = {
   obj_id = "obj" ^ (string_of_int counter);
-  is_object = false;
+  is_object = is_object_val;
   fields = [("val", (Location_Value Null_Loc))];
 }
 ;;
 
+let new_malloc heap = 
+  let counter = (incr_object_counter ()) in 
+  let new_obj = (get_new_object counter true) in 
+  let new_heap = (new_obj::heap) in
+  (new_obj, new_heap)
+;;
+
 (* Getting stack frame for new variable declaration *)
 
-let new_var_stack_frame var_id heap = 
+let new_var_stack_frame var_id is_object heap = 
   let counter = (incr_object_counter ()) in 
-  let new_obj = (get_new_object counter) in 
+  let new_obj = (get_new_object counter is_object) in 
   let new_heap = (new_obj::heap) in
     (print_string ("\nCreating new stack frame for var with counter: " ^ string_of_int(counter)));
     ((Object_Ref (var_id, new_obj.obj_id)), new_heap)
@@ -125,8 +130,10 @@ and print_fields (fields: ((string * value_sd) list)) = match fields with
 )
 
 and print_object (obj: object_sd) = (
-  (print_string ("is_object: " ^ string_of_bool(obj.is_object)));
+  (print_string ("( obj_id: " ^ obj.obj_id));
+  (print_string (" is_object: " ^ string_of_bool(obj.is_object)));
   (print_fields obj.fields);
+  (print_string " )")
 )
 
 let rec print_heap (heap: heap_sd) = match heap with
@@ -140,13 +147,13 @@ let rec print_heap (heap: heap_sd) = match heap with
 ;;
 
 let print_state (stack, new_stack) (heap, new_heap) = 
-  (print_string "\n\nState before command:\n");
+  (* (print_string "\n\nState before command:\n");
   (print_string "Stack start\n");
   (print_stack stack); 
   (print_string "Stack end\n");
   (print_string "\nHeap start\n");
   (print_heap heap);
-  (print_string "Heap end\n");
+  (print_string "Heap end\n"); *)
   (print_string "\n\nState after command:\n");
   (print_string "Stack start\n");
   (print_stack new_stack); 
@@ -238,21 +245,70 @@ and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (st
   | Proc _ -> raise (Unexpected ("Proc at eval_expr " ^ (str_of_expr e)))
   | En_Proc ((Id id), en_cs) -> (eval_en_proc e stack heap decls)
   | Id id -> let (obj_id, obj) = (eval_id id stack heap decls) in 
-      if(obj.is_object) then (Location_Value (Object_Loc obj)) (* If the id is just a plain identifier, always return its "val" *)
-      else (get_object_field obj "val")  
+      (* if(obj.is_object) then (Location_Value (Object_Loc obj)) else :: If the id is just a plain identifier, always return its "val" *)
+      (get_object_field obj "val")
   | LocExpr (e1, e2) -> (eval_loc_expr e stack heap decls)
   | _ -> raise (Unexpected ("LocExpr at eval_expr " ^ (str_of_expr e)))
 ;;
 
+let rec compare_stacks (s1: stack_sd) (s2: stack_sd) = match (s1, s2) with
+| ([], []) -> (Bool_Value true)
+| ([], _) -> (Bool_Value false)
+| (_, []) -> (Bool_Value false)
+| (Object_Ref (id1, obj_id1)::rem1, Object_Ref (id2, obj_id2)::rem2) -> 
+    (if((obj_id1 = obj_id2 && id1 = id2)) then (compare_stacks s1 s2)
+    else (Bool_Value false))
+| _ -> raise (Unexpected (""))
+
+and compare_closures (c1: value_sd) (c2: value_sd) = match (c1, c2) with
+| (Closure_Value (s1, arg1, cs1), Closure_Value (s2, arg2, cs2)) -> (
+    (compare_stacks s1 s2)
+)
+| _ -> raise (Unexpected ("compare_closures"))
+;;
+
+(* Comparing integers *)
+let eval_bool_int (op: string) (i1: int) (i2: int) = match op with
+| ">" -> (i1 > i2)
+| ">=" -> (i1 >= i2)
+| "<" -> (i1 < i2)
+| "<=" -> (i1 <= i2)
+| "==" -> (i1 = i2)
+| _ -> raise (Unexpected "eval_bool_int")
+;;
+
+(* Evaluating Boolean commands *)
+let eval_bool (b: bln) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
+match b with
+| True -> (Bool_Value true)
+| False -> (Bool_Value false)
+| BoolExpr (op, e1, e2) -> (
+  let b1 = (eval_expr e1 stack heap decls) in
+  let b2 = (eval_expr e2 stack heap decls) in
+  match (b1, b2) with
+  | (Error_Value, _) -> Bool_Error_Value
+  | (_, Error_Value) -> Bool_Error_Value
+  | (Int_Value i1, Int_Value i2) -> Bool_Value (eval_bool_int op i1 i2)
+  (* Trivially, all object comparisons will return false since locations cannot be assigned *)
+  | (Location_Value (Object_Loc o1), Location_Value (Object_Loc o2)) -> Bool_Value (o1.obj_id = o2.obj_id)
+  (* 
+  Closures are equal if their respective stacks are the same, i.e. each stack entry has the 
+  same id => the same object reference.
+  *)
+  | (Closure_Value c1, Closure_Value c2) -> (compare_closures b1 b2)
+  | _ -> Bool_Error_Value 
+)
+;;
+
+
 (* Evaluating individual commands *)
 
 (*
-  For a new variable, create a new initialized object on the heap
-  Push declaration onto stack, and update decls (symbol table) to reflect stack changes
-  NOTE: Ignore OCaml warning since the only kind of expressions that can appear with `var` are declarations
+For a new variable, create a new initialized object on the heap
+Push declaration onto stack, and update decls (symbol table) to reflect stack changes
+NOTE: Ignore OCaml warning since the only kind of expressions that can appear with `var` are declarations
  *)
-
- let rec update_decls (decls: ((string * (stack_frame_sd)) ref) list) (var: string) (new_frame: stack_frame_sd) = 
+let rec update_decls (decls: ((string * (stack_frame_sd)) ref) list) (var: string) (new_frame: stack_frame_sd) = 
   match decls with
 | [] -> raise (Unexpected ("update_decls " ^ var))
 | el::rem -> match ! el with (decls_var, old_frame) ->
@@ -260,17 +316,45 @@ and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (st
     else ((update_decls rem var new_frame)))
 ;;
 
+(* Evaluating variable declaration - change symbol table reference to newly created object *)
 let eval_decl (Decl (Id id)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   let var_id = id in
-  let (frame, new_heap) = (new_var_stack_frame id heap) in 
+  let (frame, new_heap) = (new_var_stack_frame id false heap) in 
   let new_stack = (push stack frame) in
   let _ = (update_decls decls var_id frame) in
     (En_Cmd(Decl (Id id), decls), new_stack, new_heap)
 ;;
 
+(* | (LocExpr (obj_expr, field_expr), _) -> (
+    let obj_val = (eval_expr obj_expr stack heap decls) in
+    let field_val = (eval_expr field_expr stack heap decls) in
+    match (obj_val, field_val) with
+    (* If we have an object and a field, then we can continue with assignment *)
+    | (Location_Value (Object_Loc o), Field_Value f) -> (
+        let value = (eval_expr e2 stack heap decls) in 
+        let _ = (set_object_field_on_heap o.obj_id f value heap) in
+        (En_Cmd ((Asmt (e1, e2)), decls), value, stack, heap))
+    (* Otherwise, we return error *)
+    | _ -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
+    ) *)
 
+let eval_field_asmt (FieldAsmt (obj_expr, field_expr, val_expr)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
+  let obj_val = (eval_expr obj_expr stack heap decls) in
+  let field_val = (eval_expr field_expr stack heap decls) in 
+  let result_val = (
+    match (obj_val, field_val) with
+    | (Location_Value (Object_Loc o), Field_Value f) -> (
+      let val_val = (eval_expr val_expr stack heap decls) in
+      (* Set field to appropriate value, return this value as the return value of the command *)
+      (set_object_field_on_heap o.obj_id f val_val heap);
+      val_val
+    )
+    | _ -> Error_Value
+  ) in
+  (En_Cmd (FieldAsmt (obj_expr, field_expr, val_expr), decls), result_val, stack, heap)
+
+(* Evaluating assignment statements of the form: [ x = e ] *)
 let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
-  
   match (e1, e2) with
   | (Id id, _) -> (
     let value = (eval_expr e2 stack heap decls) in 
@@ -281,37 +365,69 @@ let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string
       let obj = (get_heap_loc_from_frame frame heap) in
       let _ = (set_object_field_on_heap obj.obj_id "val" value heap) in
       (En_Cmd ((Asmt (e1, e2)), decls), value, stack, heap)
-    ))
-  | (LocExpr (obj_expr, field_expr), _) -> (
-    let value = (eval_expr e2 stack heap decls) in 
-    let obj_val = (eval_expr obj_expr stack heap decls) in
-    let field_val = (eval_expr field_expr stack heap decls) in
-    match (obj_val, field_val) with
-    (* If we have an object and a field, then we can continue with assignment *)
-    | (Location_Value (Object_Loc o), Field_Value f) -> (
-        let _ = (set_object_field_on_heap o.obj_id f value heap) in
-        (En_Cmd ((Asmt (e1, e2)), decls), value, stack, heap))
-    (* Otherwise, we return error *)
-    | _ -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
-    )
-  (* Error value returned in case the first expression is not an identifier or a location expression *)
+))  
+  (* Error value returned in case the first expression is not an identifier *)
   | _ -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
 ;;
 
+let eval_malloc (Malloc (e)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = match e with
+| (Id id) ->(
+  let (new_obj, new_heap) = (new_malloc heap) in 
+  let frame = (get_stack_frame id decls) in 
+  let obj = (get_heap_loc_from_frame frame new_heap) in
+  let _ = (set_object_field_on_heap obj.obj_id "val" (Location_Value (Object_Loc new_obj)) new_heap) in
+  ((En_Cmd (Malloc (e), decls)), (Location_Value (Object_Loc new_obj)), stack, new_heap)
+)
+| _ -> raise (Unexpected ("eval_malloc " ^ str_of_expr(e)))
+;;
+
+(* 
+Evaluating commands: (done)
+1. Declarations
+2. Assignments
+3. Malloc (dynamic allocation)
+*)
 let eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) = 
   match c with
   | (En_Cmd (c, decls)) -> (match c with
-    | (Decl d) -> ( let (new_cmd, new_stack, new_heap) = eval_decl c stack heap decls in 
+    | (Decl d) -> ( let (new_cmd, new_stack, new_heap) = (eval_decl c stack heap decls) in 
       (new_cmd, Location_Value Null_Loc, new_stack, new_heap))
     | (Asmt (e1, e2)) -> 
+      (print_string "Matched assignment");
       (eval_asmt c stack heap decls)
+    | (Malloc (e)) ->  
+      (eval_malloc c stack heap decls)
+    | (FieldAsmt (e1, e2, e3)) -> 
+      (eval_field_asmt c stack heap decls)
     | _ -> raise (Unexpected ("eval_cmd decl")) )
   | _ -> raise (Unexpected ("eval_cmd decl outer"))
 ;;
 
+(* Evaluating an enhanced AST *)
+
+let rec get_final_cmd_state (result_cmds: (en_cmd * value_sd * stack_sd * heap_sd) list) = match result_cmds with 
+| [] -> (En_Cmd (Skip, []), (Location_Value Null_Loc), [], [])
+| (el::rem) -> match rem with
+  | [] -> (match el with (final_cmd, result_val, result_stack, result_heap) -> (final_cmd, result_val, (result_stack: stack_sd), (result_heap: heap_sd)))
+| _ -> (get_final_cmd_state rem)
+;;
+
+
 let rec eval_ast (ast: en_cmd list) (stack: stack_sd) (heap: heap_sd) = match ast with
 | [] -> []
-| (c::cs) -> let (new_cmd, new_val, new_stack, new_heap) = (eval_cmd c stack heap) in
-    (print_state (stack, new_stack) (heap, new_heap));
-    ((new_cmd, new_val)::(eval_ast cs new_stack new_heap))
-;;
+| (c::rem) -> ( match c with
+  | En_Cmd _ -> (
+    let result_cmd = (eval_cmd c stack heap) in
+    let (new_cmd, new_val, new_stack, new_heap) = result_cmd in
+    let _ = (print_state (stack, new_stack) (heap, new_heap)) in
+    result_cmd::(eval_ast rem new_stack new_heap))
+  | En_Block cs -> (
+    let result_cmds = (eval_ast cs stack heap) in
+    let (final_cmd, result_val, result_stack, result_heap) = (get_final_cmd_state result_cmds) in
+    (* Note that stack is the old stack before the block is called - equivalent to block(C) *)
+    (* At the top level, we can therefore see the state of the stack *)
+    let _ = (print_state (stack, result_stack) (heap, result_heap)) in
+    (eval_ast rem stack result_heap)
+    )
+  | _ -> []
+  )

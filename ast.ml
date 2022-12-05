@@ -79,6 +79,10 @@ and value_sd =
 | Location_Value of location_sd
 | Closure_Value of (stack_sd * string * (en_cmd list))
 | Error_Value
+
+and bool_value_sd = 
+| Bool_Value of bool
+| Bool_Error_Value
 ;;
 
 (* Conversion to strings for printing *)
