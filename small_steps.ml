@@ -426,8 +426,8 @@ let rec eval_proc_call (ProcCall (e1, e2)) (stack: stack_sd) (heap: heap_sd) (de
     let _ = (update_decls prev_decls arg frame) in
     let _ = (print_string "updated decls: ") in
     let _ = (print_decls decls 0) in *)
-    let _ = (print_string "prev_decls: ") in
-    let _ = (print_decls decls 0) in
+    (* let _ = (print_string "prev_decls: ") in
+    let _ = (print_decls decls 0) in *)
     let _ = (update_decls prev_decls arg frame) in
     let arg_val = (eval_expr e2 stack heap decls) in
     (* let _ = (print_string ("arg_val: ")) in
@@ -438,10 +438,10 @@ let rec eval_proc_call (ProcCall (e1, e2)) (stack: stack_sd) (heap: heap_sd) (de
     let _ = (set_object_field_on_heap new_obj.obj_id "val" arg_val new_heap) in
     (* let _ = (print_string ("new_object: ")) in
     let _ = (print_object (new_obj)) in *)
-    let _ = (print_string "\nnew_heap: ") in
+    (* let _ = (print_string "\nnew_heap: ") in
     let _ = (print_heap new_heap) in
     let _ = (print_string "\nnew_prev_stack:\n") in
-    let _ = (print_stack new_prev_stack) in
+    let _ = (print_stack new_prev_stack) in *)
     let result_cmds = (eval_ast cs new_prev_stack new_heap) in
     let (final_cmd, result_val, result_stack, result_heap) = (get_final_cmd_state result_cmds) in
     (final_cmd, result_val, stack, result_heap)
@@ -455,7 +455,7 @@ and eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) =
     | (Decl d) -> ( let (new_cmd, new_stack, new_heap) = (eval_decl c stack heap decls) in 
       (new_cmd, Location_Value Null_Loc, new_stack, new_heap))
     | (Asmt (e1, e2)) -> 
-      (print_string "Matched assignment");
+      (* (print_string "Matched assignment"); *)
       (eval_asmt c stack heap decls)
     | (Malloc (e)) ->  
       (eval_malloc c stack heap decls)
@@ -467,7 +467,7 @@ and eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) =
   | _ -> raise (Unexpected ("eval_cmd decl outer"))
 
 (* Evaluating an enhanced AST *)
-
+  
 
 and eval_block (cs: en_cmd list) (rem: en_cmd list) (stack: stack_sd) (heap: heap_sd) =
   let result_cmds = (eval_ast cs stack heap) in
@@ -495,6 +495,12 @@ and eval_ast (ast: en_cmd list) (stack: stack_sd) (heap: heap_sd) = match ast wi
     | (Bool_Value false) -> (eval_block cs2 rem stack heap)
     | (Bool_Error_Value) -> ([(En_Cmd (Skip, []), Error_Value, stack, heap)])
     )
+  | En_Loop (b, cs, decls) -> (
+    let b_val = (eval_bool b stack heap decls) in match b_val with
+    | (Bool_Value true) -> (eval_block cs ast stack heap)
+    | (Bool_Value false) -> (eval_ast rem stack heap)
+    | (Bool_Error_Value) -> ([(En_Cmd (Skip, []), Error_Value, stack, heap)])
+  )
   | _ -> []
   )
 ;;

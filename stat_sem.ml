@@ -122,7 +122,7 @@ and scope_cmd cmd decls = match cmd with
 (* recursively check ast of blocks, both inherit decls *)
 | IfElse (b, cs1, cs2) -> En_IfElse ((scope_bool_expr b decls), (scope_ast cs1 decls), (scope_ast cs2 decls), decls)
 (* recursively check ast of block, which inherits decls *)
-| Loop (b, cs) -> En_Loop ((scope_bool_expr b decls), (scope_ast cs decls))
+| Loop (b, cs) -> En_Loop ((scope_bool_expr b decls), (scope_ast cs decls), decls)
 
 and scope_ast ast decls = match ast with
 | [] -> []
@@ -143,7 +143,7 @@ let rec print_en_cmd c ind = match c with
 | En_Parallel(c1s, c2s) -> (print_en_block c1s (ind+1)); (pr_ind_str ind ("|||\n")); (print_en_block c2s (ind+1));
 | En_Atom(cs) -> (pr_ind_str (ind) ("atom:\n")); (print_en_block cs (ind+1));
 | En_IfElse(b, cs1, cs2, decls) -> (pr_ind_str (ind) ("if:\n")); (print_en_block cs1 (ind+1));(pr_ind_str (ind) ("else:\n"));  (print_en_block cs2 (ind+1));
-| En_Loop(b, cs) ->(pr_ind_str (ind) ("loop:\n")); (print_en_block cs (ind+1));
+| En_Loop(b, cs, decls) ->(pr_ind_str (ind) ("loop:\n")); (print_en_block cs (ind+1));
 
 and print_en_block cs indent = match cs with
 | [] -> ()

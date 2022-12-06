@@ -32,7 +32,7 @@ and en_cmd =
 | En_Parallel of (en_cmd list) * (en_cmd list)
 | En_IfElse of bln * (en_cmd list) * (en_cmd list) * (((string * (stack_frame_sd)) ref) list)
 | En_Atom of (en_cmd list)
-| En_Loop of bln * (en_cmd list)
+| En_Loop of bln * (en_cmd list) * (((string * (stack_frame_sd)) ref) list)
 
 (* Stack is init to Init_Frame while declaring the symbol table *)
 (* Stack is changed during execution to point to an actual stack frame *)
