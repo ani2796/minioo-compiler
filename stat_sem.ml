@@ -76,7 +76,7 @@ let rec scope_id id decls = match decls with
 
 (* Checks *)
 let rec scope_expr e decls = match e with
-| Proc (Id id, cs) -> En_Proc (Id id, (scope_ast cs ((ref (id, Init_Frame))::decls)))
+| Proc (Id id, cs) -> let new_decls = ((ref (id, Init_Frame))::decls) in En_Proc (Id id, (scope_ast cs new_decls), new_decls)
 | Id id -> if(scope_id id decls) then (Id id) else raise (NotDeclared id)
 | LocExpr (obj, field) -> (scope_expr obj decls)
 | ArithExpr (op, e1, e2) -> (scope_arith_expr (op, e1, e2) decls)
@@ -120,7 +120,7 @@ and scope_cmd cmd decls = match cmd with
 (* recursively check ast of block, which inherits decls *)
 | Atom cs -> En_Atom (scope_ast cs decls)
 (* recursively check ast of blocks, both inherit decls *)
-| IfElse (b, cs1, cs2) -> En_IfElse ((scope_bool_expr b decls), (scope_ast cs1 decls), (scope_ast cs2 decls))
+| IfElse (b, cs1, cs2) -> En_IfElse ((scope_bool_expr b decls), (scope_ast cs1 decls), (scope_ast cs2 decls), decls)
 (* recursively check ast of block, which inherits decls *)
 | Loop (b, cs) -> En_Loop ((scope_bool_expr b decls), (scope_ast cs decls))
 
@@ -135,14 +135,14 @@ and scope_ast ast decls = match ast with
 let rec print_decls decls ind = match decls with
 | [] -> ()
 | (decl)::rem_decls -> match !decl with
-  (id, frame) -> (print_string ("decl: " ^ id ^ " ")); (print_decls rem_decls ind)
+  (id, frame) -> (print_string ("decl: " ^ id ^ " "));  (print_decls rem_decls ind)
 
 let rec print_en_cmd c ind = match c with
 | En_Cmd (cmd, decls) -> ((print_cmd cmd ind); (print_string " [ "); (print_decls decls ind)); (print_string " ]\n")
 | En_Block(cs) -> (print_en_block cs (ind+1))
 | En_Parallel(c1s, c2s) -> (print_en_block c1s (ind+1)); (pr_ind_str ind ("|||\n")); (print_en_block c2s (ind+1));
 | En_Atom(cs) -> (pr_ind_str (ind) ("atom:\n")); (print_en_block cs (ind+1));
-| En_IfElse(b, cs1, cs2) -> (pr_ind_str (ind) ("if:\n")); (print_en_block cs1 (ind+1));(pr_ind_str (ind) ("else:\n"));  (print_en_block cs2 (ind+1));
+| En_IfElse(b, cs1, cs2, decls) -> (pr_ind_str (ind) ("if:\n")); (print_en_block cs1 (ind+1));(pr_ind_str (ind) ("else:\n"));  (print_en_block cs2 (ind+1));
 | En_Loop(b, cs) ->(pr_ind_str (ind) ("loop:\n")); (print_en_block cs (ind+1));
 
 and print_en_block cs indent = match cs with

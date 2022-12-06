@@ -14,7 +14,7 @@ type cmd =
 and expr = 
 | Null
 | Proc of expr * (cmd list)
-| En_Proc of expr * (en_cmd list)
+| En_Proc of expr * (en_cmd list) * (((string * (stack_frame_sd)) ref) list)
 | Id of string
 | Field of string
 | LocExpr of expr * expr
@@ -30,7 +30,7 @@ and en_cmd =
 | En_Cmd of cmd * (((string * (stack_frame_sd)) ref) list)
 | En_Block of en_cmd list
 | En_Parallel of (en_cmd list) * (en_cmd list)
-| En_IfElse of bln * (en_cmd list) * (en_cmd list)
+| En_IfElse of bln * (en_cmd list) * (en_cmd list) * (((string * (stack_frame_sd)) ref) list)
 | En_Atom of (en_cmd list)
 | En_Loop of bln * (en_cmd list)
 
@@ -77,7 +77,7 @@ and value_sd =
 | Int_Value of int
 | Field_Value of string
 | Location_Value of location_sd
-| Closure_Value of (stack_sd * string * (en_cmd list))
+| Closure_Value of (stack_sd * string * (en_cmd list) * (((string * (stack_frame_sd)) ref) list))
 | Error_Value
 
 and bool_value_sd = 
@@ -95,7 +95,7 @@ let rec str_of_expr s = match s with
 | LocExpr (e1, e2) ->  (str_of_expr(e1) ^ "." ^ str_of_expr(e2))
 | Int i -> string_of_int(i)
 | ArithExpr (arith, e1, e2) -> (str_of_expr(e1) ^ "-" ^ str_of_expr(e2))
-| En_Proc (a, en_cs) -> str_of_expr(a)
+| En_Proc (a, en_cs, decls) -> str_of_expr(a)
 ;;
 
 let str_of_bool b = match b with
