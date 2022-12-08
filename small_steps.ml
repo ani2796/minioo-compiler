@@ -195,21 +195,7 @@ let print_line () = (
 )
 ;;
 
-(* Testing below eval_decl *)
-(* 
-
-let stack = [];;
-let heap = [];;
-let (new_cmd, new_stack, new_heap) = (eval_decl (Decl (Id "x")) stack heap [("x", (ref Init_Frame))]);;
-(print_stack new_stack);;
-(print_heap new_heap);;
-match new_cmd with (cmd, decls) -> (print_decls decls) 
-
-*)
-
-
 (* Evaluating expressions *)
-
 
 (* Arithmetic expressions *)
 let rec eval_arith_expr ( ArithExpr (arith, e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
@@ -231,6 +217,7 @@ NOTE: Ignore OCaml warning since only identifiers are possible as the first expr
 and eval_en_proc (En_Proc ((Id id), en_cs, old_decls)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) =
 (Closure_Value (stack, id, en_cs, old_decls))
 
+(* utility function to return top-most stack frame corresponding to an id *)
 and get_stack_frame (id: string) (decls: ((string * (stack_frame_sd)) ref) list) = match decls with
 | [] -> raise (Unexpected ("get_stack_frame " ^ id))
 | el::rem -> match !el with
@@ -285,6 +272,7 @@ and eval_expr (e: expr) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (st
   | _ -> raise (Unexpected ("LocExpr at eval_expr " ^ (str_of_expr e)))
 ;;
 
+(* Comparing stacks, utility for closure comparison *)
 let rec compare_stacks (s1: stack_sd) (s2: stack_sd) = match (s1, s2) with
 | ([], []) -> (Bool_Value true)
 | ([], _) -> (Bool_Value false)
@@ -294,6 +282,7 @@ let rec compare_stacks (s1: stack_sd) (s2: stack_sd) = match (s1, s2) with
     else (Bool_Value false))
 | _ -> raise (Unexpected (""))
 
+(* Comparing closures *)
 and compare_closures (c1: value_sd) (c2: value_sd) = match (c1, c2) with
 | (Closure_Value (s1, arg1, cs1, decls1), Closure_Value (s2, arg2, cs2, decls2)) -> (
     (compare_stacks s1 s2)
@@ -358,6 +347,7 @@ let eval_decl (Decl (Id id)) (stack: stack_sd) (heap: heap_sd) (decls: ((string 
     (En_Cmd(Decl (Id id), decls), new_stack, new_heap)
 ;;
 
+(* Evaluating assignment to fields [e.e' = e''] - distinct from ID assignment *)
 let eval_field_asmt (FieldAsmt (obj_expr, field_expr, val_expr)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = 
   let obj_val = (eval_expr obj_expr stack heap decls) in
   let field_val = (eval_expr field_expr stack heap decls) in 
@@ -390,6 +380,7 @@ let eval_asmt (Asmt (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string
   | _ -> (En_Cmd ((Asmt (e1, e2)), decls), Error_Value, stack, heap)
 ;;
 
+(* Evaluating dynamic memory allocation *)
 let eval_malloc (Malloc (e)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = (
   match e with
   | (Id id) ->(
@@ -403,134 +394,10 @@ let eval_malloc (Malloc (e)) (stack: stack_sd) (heap: heap_sd) (decls: ((string 
 )
 ;;
 
-
+(* Getting the final command's result from a block of commands *)
 let rec get_final_cmd_state (result_cmds: (en_cmd * value_sd * stack_sd * heap_sd) list) = match result_cmds with 
 | [] -> (En_Cmd (Skip, []), (Location_Value Null_Loc), [], [])
 | (el::rem) -> ( match rem with
   | [] -> (match el with (final_cmd, result_val, result_stack, result_heap) -> (final_cmd, result_val, (result_stack: stack_sd), (result_heap: heap_sd)))
   | _ -> (get_final_cmd_state rem) )
 ;;
-
-(* 
-Evaluating commands: (done)
-1. Declarations
-2. Assignments
-3. Malloc (dynamic allocation)
-4. Procedure call
-*)
-
-let rec eval_proc_call (ProcCall (e1, e2)) (stack: stack_sd) (heap: heap_sd) (decls: ((string * (stack_frame_sd)) ref) list) = (
-  let v1 = (eval_expr e1 stack heap decls) in match v1 with
-  | Closure_Value (prev_stack, arg, cs, prev_decls) -> (
-    let (frame, new_heap) = (new_var_stack_frame arg false heap) in
-    let new_prev_stack = (push prev_stack frame) in
-    let _ = (update_decls prev_decls arg frame) in
-    let arg_val = (eval_expr e2 stack heap decls) in
-    let new_obj = (get_heap_loc_from_frame frame new_heap) in
-    let _ = (set_object_field_on_heap new_obj.obj_id "val" arg_val new_heap) in
-    let result_cmds = (eval_ast cs new_prev_stack new_heap) in
-    let (final_cmd, result_val, result_stack, result_heap) = (get_final_cmd_state result_cmds) in
-    (final_cmd, result_val, stack, result_heap)
-  )
-  | _ -> (raise (Unexpected "eval_proc_call"))
-)
-
-and eval_cmd (c: en_cmd) (stack: stack_sd) (heap: heap_sd) = 
-  match c with
-  | (En_Cmd (c, decls)) -> (match c with
-    | (Decl d) -> ( let (new_cmd, new_stack, new_heap) = (eval_decl c stack heap decls) in 
-      (new_cmd, Location_Value Null_Loc, new_stack, new_heap))
-    | (Asmt (e1, e2)) -> 
-      (* (print_string "Matched assignment"); *)
-      (eval_asmt c stack heap decls)
-    | (Malloc (e)) ->  
-      (eval_malloc c stack heap decls)
-    | (FieldAsmt (e1, e2, e3)) -> 
-      (eval_field_asmt c stack heap decls)
-    | (ProcCall (e1, e2)) -> 
-      (eval_proc_call c stack heap decls)
-    | _ -> raise (Unexpected ("eval_cmd decl")) )
-  | _ -> raise (Unexpected ("eval_cmd decl outer"))
-
-
-and eval_block (cs: en_cmd list) (stack: stack_sd) (heap: heap_sd) =
-  (* Note that stack is the old stack before the block is called - equivalent to block(C) *)
-  (* At the top level, we can therefore see the state of the stack, and pass it on *)
-  let result_cmds = (eval_ast cs stack heap) in
-  (get_final_cmd_state result_cmds)
-  
-
-(* Evaluating an enhanced AST *)
-
-(* let _ = (print_state (stack, stack) (heap, heap)) in *)
-and eval_ast (ast: en_cmd list) (stack: stack_sd) (heap: heap_sd) = match ast with
-| [] -> []
-| (c::rem) -> (
-  match c with
-  | En_Cmd _ -> (
-      let result_cmd = (eval_cmd c stack heap) in
-      let (new_cmd, new_val, new_stack, new_heap) = result_cmd in
-      (* let _ = (print_line ()) in *)
-      (* let _ = (print_state (stack, new_stack) (heap, new_heap)) in *)
-      result_cmd::(eval_ast rem new_stack new_heap) 
-    )
-  | En_Block cs -> (
-      let result_block = (eval_block cs stack heap) in
-      let (new_cmd, new_val, new_stack, new_heap) = result_block in
-      result_block::(eval_ast rem stack new_heap) 
-    )
-  | En_Atom cs -> (
-      let result_block = (eval_block cs stack heap) in
-      let (new_cmd, new_val, new_stack, new_heap) = result_block in
-      result_block::(eval_ast rem stack new_heap) 
-    )
-  | En_IfElse (b, cs1, cs2, decls) -> (
-    let b_val = (eval_bool b stack heap decls) in match b_val with
-    | (Bool_Value true) -> (
-        let result_true = (eval_block cs1 stack heap) in
-        let (new_cmd, new_val, new_stack, new_heap) = result_true in
-        result_true::(eval_ast rem stack new_heap)
-      )
-    | (Bool_Value false) -> (
-        let result_false = (eval_block cs1 stack heap) in
-        let (new_cmd, new_val, new_stack, new_heap) = result_false in
-        result_false::(eval_ast rem stack new_heap)
-      )
-    | (Bool_Error_Value) -> ([(En_Cmd (Skip, []), Error_Value, stack, heap)])
-    )
-  | En_Loop (b, cs, decls) -> (
-    let b_val = (eval_bool b stack heap decls) in match b_val with
-    | (Bool_Value true) -> (
-        let (new_cmd, new_val, new_stack, new_heap) = (eval_block cs stack heap) in
-        (new_cmd, new_val, new_stack, new_heap)::(eval_ast ast new_stack new_heap)
-      )
-    | (Bool_Value false) -> (
-        (eval_ast rem stack heap)
-      )
-    | (Bool_Error_Value) -> ([(En_Cmd (Skip, []), Error_Value, stack, heap)])
-  )
-  | En_Parallel (cs1, cs2) -> (match (cs1, cs2) with
-    | ([], c2) ->  (
-      let (new_cmd, new_val, new_stack, new_heap) = (eval_block c2 stack heap) in
-      (new_cmd, new_val, stack, new_heap)::(eval_ast rem stack new_heap)
-    )
-    | (c1, []) ->  (
-      let (new_cmd, new_val, new_stack, new_heap) = (eval_block c1 stack heap) in
-      (new_cmd, new_val, stack, new_heap)::(eval_ast rem stack new_heap)
-    )
-    | (c1::rem1, c2::rem2) -> (
-      let rand_val =  (Random.int 2) in
-      if(rand_val = 0) then (      
-        let (new_cmd, new_val, new_stack, new_heap) = (eval_cmd c1 stack heap) in
-        let rem_parallel = [(En_Parallel (rem1, c2::rem2))] in
-        let (final_cmd, result_val, result_stack, result_heap) = (get_final_cmd_state (eval_ast rem_parallel new_stack new_heap)) in
-        (final_cmd, result_val, stack, result_heap)::(eval_ast rem stack result_heap)
-      ) else (
-        let (new_cmd, new_val, new_stack, new_heap) = (eval_cmd c2 stack heap) in
-        let rem_parallel = [(En_Parallel (c1::rem1, rem2))] in
-        let (final_cmd, result_val, result_stack, result_heap) = (get_final_cmd_state (eval_ast rem_parallel new_stack new_heap)) in
-        (final_cmd, result_val, stack, result_heap)::(eval_ast rem stack result_heap)
-      )
-      )
-    )
-  )

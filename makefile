@@ -2,10 +2,11 @@ LEXER=lex
 PARSER=parse
 STAT_SEM = stat_sem
 SS_OP = small_steps
+TRACE_SEM = trace_sem
 EXEC=minioo
 AST=ast
 
-compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${STAT_SEM}.ml ${SS_OP}.ml ${EXEC}.ml
+compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${STAT_SEM}.ml ${TRACE_SEM}.ml ${SS_OP}.ml ${EXEC}.ml
 	
 	ocamlc -c ${AST}.ml
 	@echo "Generated ${AST}.cmo\n"
@@ -26,12 +27,14 @@ compile:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${STAT_SEM}.ml ${SS_OP}.ml ${EXEC}
 	@echo "Generated ${STAT_SEM}.cmo\n"
 	ocamlc -c ${SS_OP}.ml
 	@echo "Generated ${SS_OP}.cmo\n"
+	ocamlc -c ${TRACE_SEM}.ml
+	@echo "Generated ${TRACE_SEM}.cmo\n"
 	ocamlc -c ${EXEC}.ml
 	@echo "Generated ${EXEC}.cmo\n"
-	ocamlc -o minioo ${AST}.cmo ${LEXER}.cmo ${PARSER}.cmo ${STAT_SEM}.cmo ${SS_OP}.cmo ${EXEC}.cmo
+	ocamlc -o minioo ${AST}.cmo ${LEXER}.cmo ${PARSER}.cmo ${STAT_SEM}.cmo ${SS_OP}.cmo ${TRACE_SEM}.cmo ${EXEC}.cmo
 	@echo "Generated final executable ./${EXEC}"
 
-trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${STAT_SEM}.ml ${SS_OP}.ml ${EXEC}.ml
+trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${STAT_SEM}.ml ${TRACE_SEM}.ml ${SS_OP}.ml ${EXEC}.ml
 
 	ocamlc -c ${AST}.ml
 	@echo "Generated ${AST}.cmo\n"
@@ -52,9 +55,11 @@ trace:	${LEXER}.mll ${PARSER}.mly ${AST}.ml ${STAT_SEM}.ml ${SS_OP}.ml ${EXEC}.m
 	@echo "Generated ${STAT_SEM}.cmo\n"
 	ocamlc -c ${SS_OP}.ml
 	@echo "Generated ${SS_OP}.cmo\n"
+	ocamlc -c ${TRACE_SEM}.ml
+	@echo "Generated ${TRACE_SEM}.cmo\n"
 	ocamlc -c ${EXEC}.ml
 	@echo "Generated ${EXEC}.cmo\n"
-	ocamlc -o minioo ${AST}.cmo ${LEXER}.cmo ${PARSER}.cmo ${STAT_SEM}.cmo ${SS_OP}.cmo ${EXEC}.cmo
+	ocamlc -o minioo ${AST}.cmo ${LEXER}.cmo ${PARSER}.cmo ${STAT_SEM}.cmo ${SS_OP}.cmo ${TRACE_SEM}.cmo ${EXEC}.cmo
 	@echo "Generated final executable ./${EXEC}"
 
 clean:

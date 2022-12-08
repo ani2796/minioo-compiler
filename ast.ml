@@ -72,7 +72,6 @@ and location_sd =
 
 (* A value is stored in object fields *)
 (* For ints, values are stored in the val field *)
-
 and value_sd = 
 | Int_Value of int
 | Field_Value of string
@@ -84,6 +83,7 @@ and bool_value_sd =
 | Bool_Value of bool
 | Bool_Error_Value
 ;;
+
 
 (* Conversion to strings for printing *)
 

@@ -1,11 +1,9 @@
 open Stat_sem;;
 open Small_steps;;
+open Trace_sem;;
 open Ast;;
-open List;;
-open Random;;
 open Parsing;;
 
-Random.init 100;;
 
 let pretty_print_ast ast = (
   let _ = (print_string "\nPretty printing enhanced AST\n") in
@@ -19,6 +17,9 @@ let pretty_print_ast ast = (
 let processor (ast: cmd list) (stack: stack_sd) (heap: heap_sd) =
   let en_ast = (scope_ast ast []) in
   let (final_cmd, final_value, final_stack, final_heap) = (get_final_cmd_state (eval_ast en_ast stack heap)) in
+  let _ = (print_string "\n") in
+  let _ = (print_string "AST:\n") in
+  let _ = (pretty_print_ast en_ast) in
   let _ = (print_string "\n") in
   let _ = (print_string "Stack state:\n") in
   let _ = (print_stack final_stack) in
