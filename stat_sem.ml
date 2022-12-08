@@ -5,11 +5,6 @@ exception NotDeclared of string;;
 exception NotIdentifier;;
 exception Unexpected of string;;
 
-let ast = 
-  let lexbuf = Lexing.from_channel stdin in
-    Parse.program Lex.token lexbuf
-;;
-
 
 (* Pretty-printing the AST *)
 

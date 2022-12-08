@@ -1154,7 +1154,7 @@ let
 # 1155 "lex.ml"
 = Lexing.sub_lexeme lexbuf lexbuf.Lexing.lex_start_pos lexbuf.Lexing.lex_curr_pos in
 # 49 "lex.mll"
-                                    ( FIELD field)
+                                ( FIELD field)
 # 1159 "lex.ml"
 
   | 26 ->
